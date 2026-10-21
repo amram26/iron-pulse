@@ -6,17 +6,21 @@ Site vitrine dédié à la musculation et à la performance. HTML/CSS/JS pur, sa
 
 ## Lancer le site
 
-Aucune installation requise : ouvrir `index.html` dans un navigateur, ou utiliser l'extension VS Code **Live Server** (clic droit sur `index.html` → « Open with Live Server ») pour le rechargement automatique.
+Aucune installation requise : ouvrir `public/index.html` dans un navigateur, ou utiliser l'extension VS Code **Live Server** (clic droit sur `public/index.html` → « Open with Live Server ») pour le rechargement automatique.
 
 ## Structure
 
 ```
 Iron_Pulse/
-├── index.html   # Page unique (one-page) avec ancres de navigation
-├── style.css    # Tous les styles, organisés par sections commentées
-├── script.js    # Interactions, tout dans un seul DOMContentLoaded
-└── CLAUDE.md
+├── public/          # Tout ce qui est mis en ligne — et uniquement ça
+│   ├── index.html   # Page unique (one-page) avec ancres de navigation
+│   ├── style.css    # Tous les styles, organisés par sections commentées
+│   └── script.js    # Interactions, tout dans un seul DOMContentLoaded
+├── .gitignore
+└── CLAUDE.md        # Documentation interne, jamais publiée
 ```
+
+Tout nouveau fichier du site (pages, images, favicon…) va dans `public/`. Rien d'autre ne doit y aller.
 
 ### Sections de `index.html`
 
@@ -41,7 +45,10 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 
 ## Déploiement
 
-Hébergé sur **Cloudflare Pages**, projet `iron-pulse` (envoi direct, sans Git) : https://iron-pulse-b9o.pages.dev — distinct du projet `zombie-gamer`, à ne pas écraser. Seuls `index.html`, `style.css` et `script.js` sont mis en ligne (pas `CLAUDE.md`) : régénérer `iron-pulse-site.zip` avant chaque envoi.
+- Code sur GitHub : https://github.com/amram26/iron-pulse (branche `main`).
+- Hébergé sur **Cloudflare Pages**. Projet relié à GitHub en cours de mise en place : aucune commande de build, **répertoire de sortie `public`** — chaque push sur `main` redéploie le site.
+- Ancien projet en envoi direct `iron-pulse` (https://iron-pulse-b9o.pages.dev) : à supprimer une fois le projet relié à GitHub opérationnel.
+- Le projet Cloudflare `zombie-gamer` n'a rien à voir avec Iron Pulse : ne jamais y toucher.
 
 ## Conventions de code
 
@@ -59,7 +66,7 @@ Hébergé sur **Cloudflare Pages**, projet `iron-pulse` (envoi direct, sans Git)
 - **Typographie** (Google Fonts) : *Bebas Neue* pour titres, logo et chiffres ; *Inter* pour le texte courant.
 - **Composants réutilisables** : `.btn--primary` / `.btn--ghost`, `.section` + `.section__header` (`__tag`, `__title`, `__subtitle`), `.card`.
 - **Animations** : ajouter la classe `.reveal` à un élément pour qu'il apparaisse en fondu au défilement. Halo pulsant et grille dans le hero. Tout est désactivé sous `prefers-reduced-motion`.
-- **Responsive** : points de rupture à `960px` (cartes en 1 colonne), `768px` (menu burger plein écran avec animation `clip-path` circulaire), `480px` (boutons pleine largeur).
+- **Responsive** : voir « Priorité mobile » — menu burger plein écran (animation `clip-path` circulaire) sous `769px`.
 - **Accessibilité** : `aria-expanded` / `aria-label` mis à jour sur le burger, fermeture du menu avec Échap.
 
 ## Prochaines étapes
