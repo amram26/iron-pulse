@@ -127,6 +127,132 @@
                 </div>
             </div>
         </section>
+
+        <!-- ===== CALCULATEUR ===== -->
+        <section class="section" id="calculateur">
+            <div class="container">
+                <header class="section__header reveal">
+                    <p class="section__tag">Calculateur</p>
+                    <h2 class="section__title">Calcule tes <span class="text-gradient">besoins</span></h2>
+                    <p class="section__subtitle">Calories et macronutriments adaptés à ton corps et à ton objectif, en quelques secondes.</p>
+                </header>
+
+                <div class="calc">
+                    <form class="calc__form reveal" id="calc-form" novalidate>
+                        <fieldset class="field">
+                            <legend class="field__label">Sexe</legend>
+                            <div class="segmented">
+                                <input type="radio" name="sexe" id="sexe-homme" value="homme" checked>
+                                <label for="sexe-homme">Homme</label>
+                                <input type="radio" name="sexe" id="sexe-femme" value="femme">
+                                <label for="sexe-femme">Femme</label>
+                            </div>
+                        </fieldset>
+
+                        <div class="field-row">
+                            <div class="field">
+                                <label class="field__label" for="age">Âge</label>
+                                <div class="input-unit">
+                                    <input type="number" id="age" name="age" inputmode="numeric" min="15" max="80" step="1" placeholder="25" required>
+                                    <span>ans</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field__label" for="poids">Poids</label>
+                                <div class="input-unit">
+                                    <input type="number" id="poids" name="poids" inputmode="decimal" min="35" max="250" step="0.1" placeholder="75" required>
+                                    <span>kg</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field__label" for="taille">Taille</label>
+                                <div class="input-unit">
+                                    <input type="number" id="taille" name="taille" inputmode="numeric" min="130" max="230" step="1" placeholder="178" required>
+                                    <span>cm</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="activite">Niveau d'activité</label>
+                            <select class="select" id="activite" name="activite">
+                                <option value="1.2">Sédentaire — peu ou pas de sport</option>
+                                <option value="1.375">Légèrement actif — 1 à 3 séances / semaine</option>
+                                <option value="1.55" selected>Modérément actif — 3 à 5 séances / semaine</option>
+                                <option value="1.725">Très actif — 6 à 7 séances / semaine</option>
+                                <option value="1.9">Extrêmement actif — sport intense + travail physique</option>
+                            </select>
+                        </div>
+
+                        <fieldset class="field">
+                            <legend class="field__label">Objectif</legend>
+                            <div class="segmented segmented--3">
+                                <input type="radio" name="objectif" id="obj-masse" value="masse" checked>
+                                <label for="obj-masse">Prise de masse</label>
+                                <input type="radio" name="objectif" id="obj-seche" value="seche">
+                                <label for="obj-seche">Perte de gras</label>
+                                <input type="radio" name="objectif" id="obj-maintien" value="maintien">
+                                <label for="obj-maintien">Maintien</label>
+                            </div>
+                        </fieldset>
+
+                        <p class="calc__error" id="calc-error" role="alert"></p>
+
+                        <button type="submit" class="btn btn--primary calc__submit">Calculer mes besoins</button>
+                    </form>
+
+                    <div class="calc__results reveal" id="calc-results" aria-live="polite">
+                        <div class="calc__empty" id="calc-empty">
+                            <div class="card__icon">📊</div>
+                            <p>Remplis le formulaire pour découvrir tes besoins en calories et en macronutriments.</p>
+                        </div>
+
+                        <div class="calc__output" id="calc-output" hidden>
+                            <div class="calc__stats">
+                                <div class="stat">
+                                    <span class="stat__label">Métabolisme de base</span>
+                                    <strong class="stat__value"><span id="res-bmr">0</span> <small>kcal</small></strong>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat__label">Dépense journalière</span>
+                                    <strong class="stat__value"><span id="res-tdee">0</span> <small>kcal</small></strong>
+                                </div>
+                                <div class="stat stat--target">
+                                    <span class="stat__label" id="res-target-label">Objectif</span>
+                                    <strong class="stat__value"><span id="res-target">0</span> <small>kcal / jour</small></strong>
+                                    <span class="stat__hint" id="res-target-hint"></span>
+                                </div>
+                            </div>
+
+                            <h3 class="calc__subtitle">Répartition des macronutriments</h3>
+                            <ul class="macros">
+                                <li class="macro macro--protein">
+                                    <div class="macro__head"><span>🥩 Protéines</span><strong><span id="res-prot">0</span> <small>g</small></strong></div>
+                                    <div class="macro__bar"><span id="bar-prot"></span></div>
+                                    <p class="macro__info" id="info-prot"></p>
+                                </li>
+                                <li class="macro macro--carbs">
+                                    <div class="macro__head"><span>🍚 Glucides</span><strong><span id="res-carbs">0</span> <small>g</small></strong></div>
+                                    <div class="macro__bar"><span id="bar-carbs"></span></div>
+                                    <p class="macro__info" id="info-carbs"></p>
+                                </li>
+                                <li class="macro macro--fat">
+                                    <div class="macro__head"><span>🥑 Lipides</span><strong><span id="res-fat">0</span> <small>g</small></strong></div>
+                                    <div class="macro__bar"><span id="bar-fat"></span></div>
+                                    <p class="macro__info" id="info-fat"></p>
+                                </li>
+                            </ul>
+
+                            <a href="#programmes" class="card__link">Voir le programme adapté à ton objectif →</a>
+                            <p class="calc__note">
+                                Ces chiffres sont des estimations (formule de Mifflin-St Jeor). Pèse-toi chaque semaine
+                                et ajuste de 100 à 200 kcal si ton poids n'évolue pas comme prévu.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- ===== PIED DE PAGE ===== -->
