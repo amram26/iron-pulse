@@ -1,0 +1,8 @@
+# Archive d'envoi manuel vers Cloudflare (régénérée à la demande)
+*.zip
+
+# Fichiers système / éditeur
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0b">
+    <meta name="description" content="Iron Pulse — Musculation, nutrition et performance. Programmes d'hypertrophie, de perte de gras et de force.">
+    <title>Iron Pulse — Musculation & Performance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===== EN-TÊTE ===== -->
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <a href="#accueil" class="logo">
+                <span class="logo__icon">⚡</span>
+                IRON <span class="logo__accent">PULSE</span>
+            </a>
+
+            <nav class="nav" id="nav" aria-label="Navigation principale">
+                <ul class="nav__list">
+                    <li><a href="#accueil" class="nav__link active">Accueil</a></li>
+                    <li><a href="#programmes" class="nav__link">Programmes</a></li>
+                    <li><a href="#nutrition" class="nav__link">Nutrition</a></li>
+                    <li><a href="#calculateur" class="nav__link">Calculateur</a></li>
+                    <li><a href="#contact" class="nav__link">Contact</a></li>
+                </ul>
+            </nav>
+
+            <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- ===== SECTION HÉRO ===== -->
+        <section class="hero" id="accueil">
+            <div class="hero__glow"></div>
+            <div class="container hero__content">
+                <p class="hero__tag reveal">Musculation • Nutrition • Performance</p>
+                <h1 class="hero__title reveal">
+                    Forge ton corps.<br>
+                    <span class="text-gradient">Dépasse tes limites.</span>
+                </h1>
+                <p class="hero__subtitle reveal">
+                    Chaque répétition te rapproche de la meilleure version de toi-même.
+                    Des programmes structurés, une nutrition maîtrisée et des résultats mesurables.
+                </p>
+                <div class="hero__actions reveal">
+                    <a href="#programmes" class="btn btn--primary">Commencer l'entraînement</a>
+                    <a href="#nutrition" class="btn btn--ghost">Découvrir la nutrition</a>
+                </div>
+
+                <ul class="hero__stats reveal">
+                    <li><strong data-count="120">0</strong><span>Exercices détaillés</span></li>
+                    <li><strong data-count="12">0</strong><span>Programmes complets</span></li>
+                    <li><strong data-count="100" data-suffix="%">0</strong><span>Motivation</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ===== CATÉGORIES ===== -->
+        <section class="section categories" id="programmes">
+            <div class="container">
+                <header class="section__header reveal">
+                    <p class="section__tag">Nos programmes</p>
+                    <h2 class="section__title">Choisis ton <span class="text-gradient">objectif</span></h2>
+                    <p class="section__subtitle">Trois voies, une seule règle : la régularité.</p>
+                </header>
+
+                <div class="cards">
+                    <article class="card reveal">
+                        <div class="card__icon">💪</div>
+                        <h3 class="card__title">Prise de masse</h3>
+                        <p class="card__label">Hypertrophie</p>
+                        <p class="card__text">
+                            Développe ton volume musculaire grâce à un entraînement à volume élevé,
+                            une surcharge progressive et un surplus calorique contrôlé.
+                        </p>
+                        <ul class="card__list">
+                            <li>8 à 12 répétitions par série</li>
+                            <li>Split par groupes musculaires</li>
+                            <li>Surplus de 300 à 500 kcal</li>
+                        </ul>
+                        <a href="#" class="card__link">Voir le programme →</a>
+                    </article>
+
+                    <article class="card card--featured reveal">
+                        <span class="card__badge">Populaire</span>
+                        <div class="card__icon">🔥</div>
+                        <h3 class="card__title">Perte de gras</h3>
+                        <p class="card__label">Sèche & définition</p>
+                        <p class="card__text">
+                            Affine ta silhouette tout en préservant ta masse musculaire avec
+                            un déficit calorique intelligent et des séances métaboliques.
+                        </p>
+                        <ul class="card__list">
+                            <li>Circuits et HIIT</li>
+                            <li>Apport protéique élevé</li>
+                            <li>Déficit de 300 à 500 kcal</li>
+                        </ul>
+                        <a href="#" class="card__link">Voir le programme →</a>
+                    </article>
+
+                    <article class="card reveal">
+                        <div class="card__icon">🏋️</div>
+                        <h3 class="card__title">Force</h3>
+                        <p class="card__label">Powerbuilding</p>
+                        <p class="card__text">
+                            Combine la puissance du powerlifting et l'esthétique du bodybuilding
+                            pour devenir plus fort sur les mouvements de base.
+                        </p>
+                        <ul class="card__list">
+                            <li>Squat, développé couché, soulevé de terre</li>
+                            <li>3 à 6 répétitions lourdes</li>
+                            <li>Accessoires en hypertrophie</li>
+                        </ul>
+                        <a href="#" class="card__link">Voir le programme →</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== PIED DE PAGE ===== -->
+    <footer class="footer" id="contact">
+        <div class="container footer__inner">
+            <div class="footer__brand">
+                <a href="#accueil" class="logo">
+                    <span class="logo__icon">⚡</span>
+                    IRON <span class="logo__accent">PULSE</span>
+                </a>
+                <p>La plateforme dédiée à la musculation et à la performance. Entraîne-toi avec intelligence.</p>
+            </div>
+
+            <div class="footer__col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="#accueil">Accueil</a></li>
+                    <li><a href="#programmes">Programmes</a></li>
+                    <li><a href="#nutrition">Nutrition</a></li>
+                    <li><a href="#calculateur">Calculateur</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:contact@ironpulse.fr">contact@ironpulse.fr</a></li>
+                    <li><a href="#">Instagram</a></li>
+                    <li><a href="#">YouTube</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer__bottom">
+            <div class="container">
+                <p>&copy; <span id="year"></span> Iron Pulse. Tous droits réservés.</p>
+                <a href="#accueil" class="footer__top" aria-label="Retour en haut">↑ Haut de page</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
