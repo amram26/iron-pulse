@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0b">
+    <meta name="description" content="Programmes Iron Pulse : prise de masse, perte de gras et force, de 2 à 5 séances par semaine, avec minuteur de repos.">
+    <title>Programme — Iron Pulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===== EN-TÊTE ===== -->
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <a href="index.html" class="logo">
+                <span class="logo__icon">⚡</span>
+                IRON <span class="logo__accent">PULSE</span>
+            </a>
+
+            <nav class="nav" id="nav" aria-label="Navigation principale">
+                <ul class="nav__list">
+                    <li><a href="index.html#accueil" class="nav__link">Accueil</a></li>
+                    <li><a href="index.html#programmes" class="nav__link active">Programmes</a></li>
+                    <li><a href="index.html#nutrition" class="nav__link">Nutrition</a></li>
+                    <li><a href="index.html#calculateur" class="nav__link">Calculateur</a></li>
+                    <li><a href="index.html#contact" class="nav__link">Contact</a></li>
+                </ul>
+            </nav>
+
+            <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="programme">
+        <!-- ===== HÉRO ===== -->
+        <section class="hero hero--page" id="haut">
+            <div class="hero__bg" id="prog-bg" aria-hidden="true"></div>
+            <div class="hero__glow"></div>
+            <div class="container hero__content">
+                <a href="index.html#programmes" class="back-link">← Tous les programmes</a>
+                <p class="hero__tag" id="prog-tag">Programme</p>
+                <h1 class="hero__title" id="prog-titre">Programme</h1>
+                <p class="hero__subtitle" id="prog-intro"></p>
+                <div class="hero__actions">
+                    <a href="#seances" class="btn btn--primary">Voir mes séances</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SÉANCES ===== -->
+        <section class="section" id="seances">
+            <div class="container">
+                <div class="freq">
+                    <h2 class="freq__title">Combien de séances <span class="text-gradient">par semaine ?</span></h2>
+                    <div class="segmented segmented--4" id="prog-jours">
+                        <input type="radio" name="jours" id="jours-2" value="2">
+                        <label for="jours-2">2</label>
+                        <input type="radio" name="jours" id="jours-3" value="3">
+                        <label for="jours-3">3</label>
+                        <input type="radio" name="jours" id="jours-4" value="4">
+                        <label for="jours-4">4</label>
+                        <input type="radio" name="jours" id="jours-5" value="5">
+                        <label for="jours-5">5</label>
+                    </div>
+                    <p class="freq__desc" id="prog-split"></p>
+                </div>
+
+                <h3 class="block-title">Ta semaine</h3>
+                <ol class="week" id="prog-semaine"></ol>
+
+                <h3 class="block-title">Tes séances</h3>
+                <div class="session-tabs" id="prog-onglets" role="tablist" aria-label="Séances du programme"></div>
+                <div id="prog-seance"></div>
+            </div>
+        </section>
+
+        <!-- ===== RÈGLES ===== -->
+        <section class="section section--alt">
+            <div class="container">
+                <header class="section__header">
+                    <p class="section__tag">Les règles d'or</p>
+                    <h2 class="section__title">Pour <span class="text-gradient">progresser</span></h2>
+                </header>
+
+                <ul class="rules" id="prog-regles"></ul>
+
+                <div class="cta">
+                    <h3>Et dans l'assiette ?</h3>
+                    <p>Calcule tes calories et tes protéines pour cet objectif.</p>
+                    <a href="index.html#calculateur" class="btn btn--primary" id="prog-calc">Calcule tes besoins</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== MINUTEUR DE REPOS ===== -->
+    <div class="timer" id="timer" hidden>
+        <div class="timer__ring" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><circle class="timer__track" cx="24" cy="24" r="21"/><circle class="timer__progress" id="timer-progress" cx="24" cy="24" r="21"/></svg>
+        </div>
+        <div class="timer__info" role="timer" aria-live="off">
+            <span class="timer__label" id="timer-label">Repos</span>
+            <strong class="timer__temps" id="timer-temps">0:00</strong>
+        </div>
+        <div class="timer__actions">
+            <button type="button" class="timer__btn" data-action="moins" aria-label="Retirer 15 secondes">−15</button>
+            <button type="button" class="timer__btn timer__btn--main" data-action="pause" id="timer-pause" aria-label="Mettre en pause">❚❚</button>
+            <button type="button" class="timer__btn" data-action="plus" aria-label="Ajouter 15 secondes">+15</button>
+            <button type="button" class="timer__btn timer__btn--close" data-action="stop" aria-label="Arrêter le minuteur">✕</button>
+        </div>
+    </div>
+
+    <!-- ===== BARRE D'ACCÈS RAPIDE (mobile) ===== -->
+    <nav class="tabbar" aria-label="Accès rapide">
+        <a href="index.html#accueil" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+            <span>Accueil</span>
+        </a>
+        <a href="index.html#programmes" class="tabbar__link active">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/></svg>
+            <span>Programmes</span>
+        </a>
+        <a href="index.html#nutrition" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.5c-3-2-8-1-8 4.5 0 5 3 9 5.5 9 1.2 0 1.6-.6 2.5-.6s1.3.6 2.5.6c2.5 0 5.5-4 5.5-9 0-5.5-5-6.5-8-4.5z"/><path d="M12 7.5c0-2 1-4 3-4.5"/></svg>
+            <span>Nutrition</span>
+        </a>
+        <a href="index.html#recherche-aliment" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <span>Aliments</span>
+        </a>
+        <a href="index.html#calculateur" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7h7M9 11h.01M12 11h.01M15 11h.01M9 14.5h.01M12 14.5h.01M15 14.5h.01M9 18h.01M12 18h.01M15 18h.01"/></svg>
+            <span>Calcul</span>
+        </a>
+    </nav>
+
+    <!-- ===== PIED DE PAGE ===== -->
+    <footer class="footer">
+        <div class="container footer__inner">
+            <div class="footer__brand">
+                <a href="index.html" class="logo">
+                    <span class="logo__icon">⚡</span>
+                    IRON <span class="logo__accent">PULSE</span>
+                </a>
+                <p>La plateforme dédiée à la musculation et à la performance. Entraîne-toi avec intelligence.</p>
+            </div>
+
+            <div class="footer__col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="index.html#accueil">Accueil</a></li>
+                    <li><a href="index.html#programmes">Programmes</a></li>
+                    <li><a href="index.html#nutrition">Nutrition</a></li>
+                    <li><a href="index.html#calculateur">Calculateur</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:contact@ironpulse.fr">contact@ironpulse.fr</a></li>
+                    <li><a href="#">Instagram</a></li>
+                    <li><a href="#">YouTube</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer__bottom">
+            <div class="container">
+                <p>&copy; <span id="year"></span> Iron Pulse. Tous droits réservés. Photos : <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>, <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a> et <a href="https://pixabay.com" target="_blank" rel="noopener">Pixabay</a>.</p>
+                <a href="#haut" class="footer__top" aria-label="Retour en haut">↑ Haut de page</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="programmes.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -41,6 +41,8 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 - Effets de survol uniquement dans `@media (hover: hover)`.
 - Zones tactiles d'au moins 44–48px, boutons pleine largeur sur mobile, `100svh` pour le hero, marges `safe-area-inset` (encoche iPhone).
 - Ne jamais mettre de `backdrop-filter` directement sur `.header` : il confinerait le menu mobile plein écran (le flou est sur `.header::before`).
+- **Page courte et rangée sur téléphone** : les séries de grandes cartes (programmes, macros) sont des carrousels à faire glisser (`.carousel` + `data-carousel`, points générés par `initCarrousel`), redevenant des grilles à partir de `961px`. Conseils en 2 × 2, 3 aliments populaires seulement tant qu'on n'a rien tapé, footer sur 2 colonnes.
+- **Barre d'accès rapide** `.tabbar` en bas de l'écran sous `769px` (Accueil, Programmes, Nutrition, Aliments, Calcul) ; l'onglet actif suit le défilement. Le `body` a un `padding-bottom` pour qu'elle ne cache rien. Toute nouvelle section importante peut y être ajoutée (5 onglets maximum).
 - Le seuil `768` dans `script.js` (fermeture du menu au redimensionnement) doit rester aligné avec la media query `769px`.
 
 ## Déploiement
@@ -78,6 +80,18 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 - Recherche dans `initRechercheAliments` (`script.js`) : sans accents ni majuscules, préfixe > contient, puis tolérance aux fautes (distance avec inversion de lettres) en ne gardant que les plus proches.
 - Pour ajouter un aliment : une entrée dans `ALIMENTS`, valeurs réalistes (ordre de grandeur Ciqual), puis vérifier qu'une recherche voisine ne renvoie pas de résultat absurde.
 
+## Pages programmes
+
+- **Une seule page** `public/programme.html?objectif=masse|seche|force&jours=2..5`, remplie en JS (`initProgramme` dans `script.js`) à partir de `public/programmes.js` : `EXERCICES` (nom, muscles, conseil, `groupe`, photo ou emoji), `SEANCES`, `SPLITS` (semaine selon 2 à 5 séances), `SCHEMAS` (séries / répétitions / repos en secondes selon l'objectif et le rôle `base` ou `iso`), `PROGRAMMES` (textes et règles d'or).
+- Splits : 2 = full body A/B, 3 = full body A/B/C, 4 = haut/bas ×2, 5 = pecs-épaules-triceps A / dos-biceps A / jambes / pecs-épaules-triceps B / dos-biceps B (organisation voulue par le propriétaire ; dans les textes, préciser « arrière des bras » pour les triceps et « avant des bras » pour les biceps). **Jamais d'entraînement le vendredi ni le samedi** (choix du propriétaire du site) : la semaine affichée commence le **dimanche** (`NOMS_JOURS`) et toutes les semaines types tiennent du dimanche au jeudi. En force, le 1er exercice de chaque séance passe en 5 × 3–5 avec 3 min de repos. En sèche, 15 min de cardio en fin de séance.
+- **Changer d'exercice** : alterne entre les exercices du même `groupe`, sans doublon dans la séance ; choix mémorisés dans `localStorage` (`ironpulse-exercices`, clé `objectif|séance|position`), ignorés si l'exercice choisi n'est plus dans la même famille. Un `groupe` = mêmes muscles **et** même type de mouvement (ex. `epaules-ciblees` = côté de l'épaule, `epaules-arriere` = arrière ; les dips sont dans `triceps`, les hip thrust dans `fessiers`, pas dans `charniere`). La salle du propriétaire a des machines : chaque famille propose si possible une version machine.
+- **Conseils techniques** : simples, en « tu », et toujours avec le point de sécurité principal (dos plat, talons au sol…) ; pour les mouvements lourds à la barre (squat, développé couché), rappeler les barres de sécurité du rack ou un partenaire. Le contenu des programmes a été relu par une revue multi-agents le 21/10/2026 (20 corrections appliquées).
+- **Carnet** : poids × répétitions par série, stocké par exercice dans `ironpulse-carnet` (20 entrées max) ; affiche la dernière séance, le gain de poids et un conseil de progression (`conseilProgression` : tout au max → +2,5 kg ; sous le min → garder ou baisser ; sinon +1 répétition).
+- **Minuteur de repos** (`creerMinuteur`) : basé sur l'heure de fin, −15 / +15 s, pause, vibration + bip (Web Audio préparé au clic) à la fin. Affiché au-dessus de la barre d'accès rapide.
+- Photos d'exercices dans `public/images/exercices/` (480×360, WebP par défaut ; `img` peut contenir une extension, ex. `curl-pupitre.jpg`). 45 exercices sur 47 ont une photo ; `leg-curl-allonge` et `triceps-machine` gardent leur emoji faute de photo libre fiable. Règle : une photo doit montrer le **bon exercice avec le bon matériel** (ou, pour une machine, la bonne machine seule) — sinon on garde l'emoji plutôt qu'une image trompeuse.
+- Sources de photos : **Pexels** (téléchargeable directement via `images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?auto=compress&cs=tinysrgb&w=480&h=360&fit=crop` avec l'en-tête `Accept: image/webp` pour obtenir du WebP) et **Pixabay** (CDN `cdn.pixabay.com`). Licences gratuites, sans attribution obligatoire ; crédit « Photos : Unsplash, Pexels et Pixabay » dans le footer des deux pages. Les pages de recherche de ces sites bloquent l'accès automatique : passer par une recherche web.
+- Les cartes de l'accueil pointent vers `programme.html?objectif=…` ; le bouton « Calcule tes besoins » renvoie vers `index.html?objectif=…#calculateur`, qui présélectionne l'objectif.
+
 ## Calculateur
 
 Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIFS` / `LIMITES`), styles dans le bloc « CALCULATEUR » de `style.css`.
@@ -99,6 +113,5 @@ Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIF
 ## Prochaines étapes
 
 1. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
-2. **Pages programmes détaillées** : les liens « Voir le programme → » des cartes pointent vers `#` pour l'instant.
-3. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
-4. Améliorations possibles : favicon, balises Open Graph pour le partage.
+2. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
+3. Améliorations possibles : favicon, balises Open Graph pour le partage.
