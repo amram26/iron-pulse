@@ -28,7 +28,7 @@ Tout nouveau fichier du site (pages, images, favicon…) va dans `public/`. Rien
 |----------------|------------------------------------------------------|------------|
 | `#accueil`     | Hero : titre, sous-titre, 2 boutons, compteurs animés | Fait       |
 | `#programmes`  | 3 cartes : Prise de masse, Perte de gras, Force      | Fait       |
-| `#nutrition`   | —                                                    | À créer    |
+| `#nutrition`   | 3 macros (photos), journée type masse/sèche, 4 conseils | Fait     |
 | `#calculateur` | Calculateur calories + macros (formulaire / résultats) | Fait     |
 | `#contact`     | Pointe actuellement vers le `<footer>`               | Provisoire |
 
@@ -59,6 +59,25 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 - **JS** : vanilla, `const`/fonctions fléchées, `IntersectionObserver` pour tout ce qui dépend du défilement (pas d'écouteur `scroll` lourd).
 - **Classes d'état** pilotées par JS : `.scrolled` (header), `.open` (nav), `.active` (burger, liens), `.visible` (éléments `.reveal`), `.menu-open` (body, bloque le scroll).
 
+## Photos
+
+- Dans `public/images/`, en **WebP** (~50–150 Ko, 800 px de large ; `hero-large.webp` 1600 px pour ordinateur). Source : Unsplash (licence libre), crédit dans le footer.
+- Choisir des photos **sombres et intenses** cohérentes avec le thème ; toujours les regarder avant de les utiliser. Télécharger via `https://images.unsplash.com/photo-<id>?w=800&q=72&fm=webp`.
+- Toujours `width`/`height`, `alt` en français et `loading="lazy"` (sauf le hero, en fond CSS).
+- Les chiffres affichés sur le site doivent être **vrais** (pas de « 120 exercices » qui n'existent pas).
+
+## Journée type (Nutrition)
+
+- 4 idées par repas et par objectif dans `IDEES_REPAS` (`script.js`) : `[description, kcal, protéines en g]`. La première idée de chaque liste doit rester identique au texte écrit dans le HTML.
+- Repas **simples, sans recette**, avec des aliments du quotidien. Calories et protéines réalistes (arrondies à 5 g / 50 kcal) ; la journée type doit rester dans 1,6–2,2 g de protéines par kg pour ~75 kg.
+- Boutons « ↻ Autre idée » (créés en JS) et « 🔀 Nouvelle journée » ; les totaux kcal et protéines se recalculent.
+
+## Recherche d'aliments (Nutrition)
+
+- Données dans `public/aliments.js` (chargé avant `script.js`) : valeurs **pour 100 g** (kcal, prot, gluc, lip), une `portion` courante, des `alias` (synonymes, pluriels, fautes fréquentes) et soit une photo `img` (`images/aliments/<nom>.webp`, 480×320), soit un `emoji` affiché sur fond dégradé.
+- Recherche dans `initRechercheAliments` (`script.js`) : sans accents ni majuscules, préfixe > contient, puis tolérance aux fautes (distance avec inversion de lettres) en ne gardant que les plus proches.
+- Pour ajouter un aliment : une entrée dans `ALIMENTS`, valeurs réalistes (ordre de grandeur Ciqual), puis vérifier qu'une recherche voisine ne renvoie pas de résultat absurde.
+
 ## Calculateur
 
 Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIFS` / `LIMITES`), styles dans le bloc « CALCULATEUR » de `style.css`.
@@ -79,8 +98,7 @@ Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIF
 
 ## Prochaines étapes
 
-1. **Section Nutrition** (`#nutrition`) : principes clés (protéines, glucides, lipides, hydratation), exemples de repas selon l'objectif.
-2. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
-3. **Pages programmes détaillées** : les liens « Voir le programme → » des cartes pointent vers `#` pour l'instant.
-4. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
-5. Améliorations possibles : images/visuels pour le hero et les cartes, favicon, balises Open Graph pour le partage.
+1. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
+2. **Pages programmes détaillées** : les liens « Voir le programme → » des cartes pointent vers `#` pour l'instant.
+3. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
+4. Améliorations possibles : favicon, balises Open Graph pour le partage.

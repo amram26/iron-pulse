@@ -1,0 +1,115 @@
+/* ==========================================================
+   IRON PULSE — Base d'aliments de la recherche
+   Valeurs moyennes arrondies pour 100 g (aliments cuits quand
+   c'est précisé), ordres de grandeur de la table Ciqual (ANSES).
+   img : nom du fichier dans images/aliments/ (sinon emoji).
+   ========================================================== */
+
+const ALIMENTS = [
+    // ---------- Protéines ----------
+    { nom: "Œuf", alias: ["oeufs", "œufs", "oeuf dur", "omelette"], img: "oeuf", emoji: "🥚",
+      portion: { label: "1 œuf", g: 60 }, kcal: 140, prot: 12.5, gluc: 0.7, lip: 10 },
+    { nom: "Blanc de poulet", alias: ["poulet", "filet de poulet", "escalope de poulet"], img: "poulet", emoji: "🍗",
+      portion: { label: "1 filet cuit", g: 150 }, kcal: 150, prot: 31, gluc: 0, lip: 2.5 },
+    { nom: "Dinde", alias: ["escalope de dinde", "blanc de dinde"], img: "dinde", emoji: "🦃",
+      portion: { label: "1 escalope cuite", g: 150 }, kcal: 135, prot: 29, gluc: 0, lip: 2 },
+    { nom: "Steak haché 5 %", alias: ["steak", "boeuf", "bœuf", "viande hachée", "viande", "steak haché"], img: "steak", emoji: "🥩",
+      portion: { label: "1 steak cuit", g: 100 }, kcal: 160, prot: 26, gluc: 0, lip: 6 },
+    { nom: "Saumon", alias: ["pavé de saumon", "poisson"], img: "saumon", emoji: "🐟",
+      portion: { label: "1 pavé cuit", g: 150 }, kcal: 200, prot: 25, gluc: 0, lip: 11 },
+    { nom: "Thon au naturel", alias: ["thon", "thon en boîte", "poisson"], emoji: "🐟",
+      portion: { label: "1 boîte égouttée", g: 100 }, kcal: 115, prot: 26, gluc: 0, lip: 1 },
+    { nom: "Sardines à l'huile", alias: ["sardine", "sardines", "poisson"], emoji: "🐟",
+      portion: { label: "1 boîte égouttée", g: 90 }, kcal: 220, prot: 24, gluc: 0, lip: 14 },
+    { nom: "Crevettes", alias: ["crevette", "fruits de mer"], img: "crevettes", emoji: "🦐",
+      portion: { label: "1 portion cuite", g: 100 }, kcal: 100, prot: 22, gluc: 0, lip: 1.5 },
+    { nom: "Jambon blanc", alias: ["jambon"], emoji: "🍖",
+      portion: { label: "1 tranche", g: 40 }, kcal: 115, prot: 20, gluc: 1, lip: 3.5 },
+    { nom: "Whey (protéine en poudre)", alias: ["whey", "protéine en poudre", "shaker", "proteine"], emoji: "🥤",
+      portion: { label: "1 dose", g: 30 }, kcal: 380, prot: 78, gluc: 7, lip: 6 },
+
+    // ---------- Produits laitiers ----------
+    { nom: "Fromage blanc", alias: ["faisselle"], img: "fromage-blanc", emoji: "🥛",
+      portion: { label: "1 pot", g: 100 }, kcal: 75, prot: 7.5, gluc: 4, lip: 3 },
+    { nom: "Skyr", alias: ["yaourt grec", "yaourt protéiné"], img: "fromage-blanc", emoji: "🥛",
+      portion: { label: "1 pot", g: 150 }, kcal: 60, prot: 10, gluc: 4, lip: 0.2 },
+    { nom: "Yaourt nature", alias: ["yaourt", "yogourt", "yoghourt"], img: "fromage-blanc", emoji: "🥛",
+      portion: { label: "1 pot", g: 125 }, kcal: 65, prot: 4, gluc: 5, lip: 3 },
+    { nom: "Lait demi-écrémé", alias: ["lait", "verre de lait"], emoji: "🥛",
+      portion: { label: "1 verre", g: 250 }, kcal: 46, prot: 3.3, gluc: 4.8, lip: 1.6 },
+    { nom: "Emmental", alias: ["fromage", "fromage râpé", "gruyère", "comté"], img: "emmental", emoji: "🧀",
+      portion: { label: "1 portion", g: 30 }, kcal: 380, prot: 28, gluc: 0, lip: 29 },
+
+    // ---------- Féculents ----------
+    { nom: "Riz", alias: ["riz blanc", "riz basmati", "riz cuit"], img: "riz", emoji: "🍚",
+      portion: { label: "1 assiette cuite", g: 200 }, kcal: 130, prot: 2.7, gluc: 28, lip: 0.3 },
+    { nom: "Pâtes", alias: ["pates", "pate", "patte", "pattes", "spaghetti", "pâtes cuites", "macaroni", "penne", "tagliatelles"], img: "pates", emoji: "🍝",
+      portion: { label: "1 assiette cuite", g: 250 }, kcal: 150, prot: 5.5, gluc: 30, lip: 0.9 },
+    { nom: "Pain", alias: ["baguette", "pain complet", "tartine", "pain de mie"], img: "pain", emoji: "🍞",
+      portion: { label: "1 tranche", g: 30 }, kcal: 270, prot: 9, gluc: 55, lip: 1.2 },
+    { nom: "Flocons d'avoine", alias: ["avoine", "porridge", "flocons"], img: "avoine", emoji: "🥣",
+      portion: { label: "1 bol", g: 60 }, kcal: 370, prot: 13, gluc: 60, lip: 7 },
+    { nom: "Céréales du petit-déjeuner", alias: ["céréales", "cereales", "corn flakes"], emoji: "🥣",
+      portion: { label: "1 bol", g: 40 }, kcal: 380, prot: 7, gluc: 84, lip: 1 },
+    { nom: "Semoule", alias: ["couscous", "semoule cuite"], emoji: "🍚",
+      portion: { label: "1 assiette cuite", g: 200 }, kcal: 112, prot: 3.8, gluc: 23, lip: 0.2 },
+    { nom: "Quinoa", alias: ["quinoa cuit"], emoji: "🍚",
+      portion: { label: "1 assiette cuite", g: 200 }, kcal: 120, prot: 4.4, gluc: 21, lip: 1.9 },
+    { nom: "Pomme de terre", alias: ["pommes de terre", "patate", "patates", "purée"], img: "pomme-de-terre", emoji: "🥔",
+      portion: { label: "1 portion cuite", g: 200 }, kcal: 80, prot: 2, gluc: 17, lip: 0.1 },
+    { nom: "Patate douce", alias: ["patates douces"], emoji: "🍠",
+      portion: { label: "1 portion cuite", g: 200 }, kcal: 90, prot: 2, gluc: 20, lip: 0.1 },
+    { nom: "Frites", alias: ["frite"], img: "frites", emoji: "🍟",
+      portion: { label: "1 portion", g: 150 }, kcal: 300, prot: 3.5, gluc: 37, lip: 15 },
+    { nom: "Pois chiches", alias: ["pois chiche", "houmous"], img: "pois-chiches", emoji: "🫘",
+      portion: { label: "1 portion cuite", g: 150 }, kcal: 140, prot: 8, gluc: 19, lip: 2.5 },
+    { nom: "Lentilles", alias: ["lentille"], emoji: "🫘",
+      portion: { label: "1 portion cuite", g: 200 }, kcal: 115, prot: 9, gluc: 17, lip: 0.5 },
+
+    // ---------- Fruits & légumes ----------
+    { nom: "Banane", alias: ["bananes"], img: "banane", emoji: "🍌",
+      portion: { label: "1 banane", g: 120 }, kcal: 90, prot: 1.1, gluc: 20, lip: 0.3 },
+    { nom: "Pomme", alias: ["pommes"], img: "pomme", emoji: "🍎",
+      portion: { label: "1 pomme", g: 150 }, kcal: 52, prot: 0.3, gluc: 12, lip: 0.2 },
+    { nom: "Orange", alias: ["oranges", "jus d'orange"], img: "orange", emoji: "🍊",
+      portion: { label: "1 orange", g: 150 }, kcal: 47, prot: 0.9, gluc: 9, lip: 0.1 },
+    { nom: "Fraises", alias: ["fraise", "fruits rouges"], img: "fraises", emoji: "🍓",
+      portion: { label: "1 bol", g: 150 }, kcal: 32, prot: 0.7, gluc: 6, lip: 0.3 },
+    { nom: "Avocat", alias: ["avocats"], img: "avocat", emoji: "🥑",
+      portion: { label: "1/2 avocat", g: 80 }, kcal: 160, prot: 2, gluc: 2, lip: 15 },
+    { nom: "Brocolis", alias: ["brocoli", "légumes"], img: "brocolis", emoji: "🥦",
+      portion: { label: "1 portion cuite", g: 150 }, kcal: 35, prot: 2.8, gluc: 4, lip: 0.4 },
+    { nom: "Haricots verts", alias: ["haricot vert", "haricots", "légumes"], emoji: "🫛",
+      portion: { label: "1 portion cuite", g: 150 }, kcal: 30, prot: 2, gluc: 4, lip: 0.2 },
+
+    { nom: "Tomate", alias: ["tomates", "tomate cerise"], emoji: "🍅",
+      portion: { label: "1 tomate", g: 120 }, kcal: 18, prot: 0.9, gluc: 3, lip: 0.2 },
+    { nom: "Carotte", alias: ["carottes"], emoji: "🥕",
+      portion: { label: "1 carotte", g: 100 }, kcal: 36, prot: 0.8, gluc: 7, lip: 0.3 },
+    { nom: "Salade verte", alias: ["salade", "laitue", "légumes"], emoji: "🥗",
+      portion: { label: "1 bol", g: 80 }, kcal: 15, prot: 1.3, gluc: 1.7, lip: 0.2 },
+
+    // ---------- Gras & oléagineux ----------
+    { nom: "Amandes", alias: ["amande", "fruits secs", "oléagineux"], img: "amandes", emoji: "🌰",
+      portion: { label: "1 poignée", g: 30 }, kcal: 600, prot: 21, gluc: 9, lip: 52 },
+    { nom: "Noix", alias: ["cerneaux de noix", "fruits secs"], emoji: "🌰",
+      portion: { label: "1 poignée", g: 30 }, kcal: 650, prot: 15, gluc: 7, lip: 65 },
+    { nom: "Beurre de cacahuète", alias: ["cacahuète", "cacahuètes", "peanut butter", "beurre de cacahuete"], emoji: "🥜",
+      portion: { label: "1 cuillère à soupe", g: 15 }, kcal: 600, prot: 25, gluc: 15, lip: 50 },
+    { nom: "Huile d'olive", alias: ["huile"], img: "huile-olive", emoji: "🫒",
+      portion: { label: "1 cuillère à soupe", g: 10 }, kcal: 900, prot: 0, gluc: 0, lip: 100 },
+    { nom: "Beurre", alias: ["beurre doux"], emoji: "🧈",
+      portion: { label: "1 noisette", g: 10 }, kcal: 740, prot: 0.7, gluc: 0.7, lip: 82 },
+    { nom: "Miel", alias: [], emoji: "🍯",
+      portion: { label: "1 cuillère à soupe", g: 20 }, kcal: 320, prot: 0.4, gluc: 80, lip: 0 },
+    { nom: "Chocolat noir 70 %", alias: ["chocolat"], img: "chocolat", emoji: "🍫",
+      portion: { label: "2 carrés", g: 20 }, kcal: 580, prot: 8, gluc: 33, lip: 43 },
+
+    // ---------- Plaisirs ----------
+    { nom: "Pizza margherita", alias: ["pizza", "pizzas"], img: "pizza", emoji: "🍕",
+      portion: { label: "1/2 pizza", g: 200 }, kcal: 250, prot: 10, gluc: 30, lip: 9 },
+    { nom: "Burger", alias: ["hamburger", "cheeseburger", "burgers"], img: "burger", emoji: "🍔",
+      portion: { label: "1 burger", g: 220 }, kcal: 250, prot: 13, gluc: 25, lip: 11 },
+    { nom: "Croissant", alias: ["croissants", "viennoiserie"], img: "croissant", emoji: "🥐",
+      portion: { label: "1 croissant", g: 60 }, kcal: 410, prot: 8, gluc: 45, lip: 21 }
+];

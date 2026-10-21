@@ -42,6 +42,7 @@
     <main>
         <!-- ===== SECTION HÉRO ===== -->
         <section class="hero" id="accueil">
+            <div class="hero__bg" aria-hidden="true"></div>
             <div class="hero__glow"></div>
             <div class="container hero__content">
                 <p class="hero__tag reveal">Musculation • Nutrition • Performance</p>
@@ -59,9 +60,9 @@
                 </div>
 
                 <ul class="hero__stats reveal">
-                    <li><strong data-count="120">0</strong><span>Exercices détaillés</span></li>
-                    <li><strong data-count="12">0</strong><span>Programmes complets</span></li>
-                    <li><strong data-count="100" data-suffix="%">0</strong><span>Motivation</span></li>
+                    <li><strong data-count="3" data-suffix="">0</strong><span>Objectifs ciblés</span></li>
+                    <li><strong data-count="100" data-suffix=" %">0</strong><span>Gratuit</span></li>
+                    <li><strong>0</strong><span>Inscription requise</span></li>
                 </ul>
             </div>
         </section>
@@ -77,6 +78,9 @@
 
                 <div class="cards">
                     <article class="card reveal">
+                        <div class="card__media">
+                            <img src="images/prise-de-masse.webp" alt="Athlète musclé réalisant un curl à la barre en salle de sport" width="800" height="533" loading="lazy">
+                        </div>
                         <div class="card__icon">💪</div>
                         <h3 class="card__title">Prise de masse</h3>
                         <p class="card__label">Hypertrophie</p>
@@ -93,6 +97,9 @@
                     </article>
 
                     <article class="card card--featured reveal">
+                        <div class="card__media">
+                            <img src="images/perte-de-gras.webp" alt="Séance intense aux cordes ondulatoires" width="800" height="533" loading="lazy">
+                        </div>
                         <span class="card__badge">Populaire</span>
                         <div class="card__icon">🔥</div>
                         <h3 class="card__title">Perte de gras</h3>
@@ -110,6 +117,9 @@
                     </article>
 
                     <article class="card reveal">
+                        <div class="card__media">
+                            <img src="images/force.webp" alt="Main saisissant un haltère lourd" width="800" height="533" loading="lazy">
+                        </div>
                         <div class="card__icon">🏋️</div>
                         <h3 class="card__title">Force</h3>
                         <p class="card__label">Powerbuilding</p>
@@ -128,8 +138,158 @@
             </div>
         </section>
 
+        <!-- ===== NUTRITION ===== -->
+        <section class="section" id="nutrition">
+            <div class="container">
+                <header class="section__header reveal">
+                    <p class="section__tag">Nutrition</p>
+                    <h2 class="section__title">Le muscle se construit <span class="text-gradient">dans l'assiette</span></h2>
+                    <p class="section__subtitle">L'entraînement donne le signal, la nutrition fournit les matériaux. Voici l'essentiel, sans prise de tête.</p>
+                </header>
+
+                <div class="foods">
+                    <article class="food reveal">
+                        <div class="food__media">
+                            <img src="images/proteines.webp" alt="Blanc de poulet grillé avec légumes et citron" width="800" height="533" loading="lazy">
+                        </div>
+                        <div class="food__body">
+                            <p class="food__tag">Construire</p>
+                            <h3 class="food__title">Protéines</h3>
+                            <p class="food__text">Elles réparent et construisent tes fibres musculaires après chaque séance.</p>
+                            <p class="food__dose"><strong>1,6 à 2,2 g</strong> par kg de poids de corps</p>
+                            <ul class="chips">
+                                <li>Poulet</li><li>Œufs</li><li>Poisson</li><li>Fromage blanc</li><li>Lentilles</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="food reveal">
+                        <div class="food__media">
+                            <img src="images/glucides.webp" alt="Bol de riz blanc fumant" width="800" height="533" loading="lazy">
+                        </div>
+                        <div class="food__body">
+                            <p class="food__tag">Énergie</p>
+                            <h3 class="food__title">Glucides</h3>
+                            <p class="food__text">Ton carburant : ils remplissent tes réserves d'énergie pour des séances intenses.</p>
+                            <p class="food__dose"><strong>Le reste</strong> de tes calories</p>
+                            <ul class="chips">
+                                <li>Riz</li><li>Avoine</li><li>Pommes de terre</li><li>Pâtes</li><li>Fruits</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="food reveal">
+                        <div class="food__media">
+                            <img src="images/lipides.webp" alt="Tartine à l'avocat et aux œufs durs" width="800" height="533" loading="lazy">
+                        </div>
+                        <div class="food__body">
+                            <p class="food__tag">Équilibrer</p>
+                            <h3 class="food__title">Lipides</h3>
+                            <p class="food__text">Indispensables à tes hormones, dont la testostérone, et à l'absorption des vitamines.</p>
+                            <p class="food__dose"><strong>0,8 à 1 g</strong> par kg de poids de corps</p>
+                            <ul class="chips">
+                                <li>Huile d'olive</li><li>Avocat</li><li>Noix et amandes</li><li>Saumon</li><li>Jaune d'œuf</li>
+                            </ul>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="search reveal" id="recherche-aliment">
+                    <h3 class="search__title">Combien de protéines <span class="text-gradient">dans…</span></h3>
+                    <p class="search__subtitle">Tape un aliment pour voir ses calories et ses protéines.</p>
+                    <div class="search__field">
+                        <span class="search__icon" aria-hidden="true">🔍</span>
+                        <input type="search" id="aliment-recherche" placeholder="Ex. : œuf, poulet, riz, banane…" autocomplete="off" enterkeyhint="search" aria-label="Rechercher un aliment" aria-controls="aliment-resultats">
+                    </div>
+                    <div class="search__suggest">
+                        <span>Populaires :</span>
+                        <button type="button" class="chip-btn">Œuf</button>
+                        <button type="button" class="chip-btn">Poulet</button>
+                        <button type="button" class="chip-btn">Thon</button>
+                        <button type="button" class="chip-btn">Riz</button>
+                        <button type="button" class="chip-btn">Banane</button>
+                        <button type="button" class="chip-btn">Pizza</button>
+                    </div>
+                    <p class="search__status" id="aliment-statut" aria-live="polite"></p>
+                    <ul class="search__results" id="aliment-resultats"></ul>
+                </div>
+
+                <div class="day reveal">
+                    <div class="day__head">
+                        <h3 class="day__title">Une journée <span class="text-gradient">type</span></h3>
+                        <div class="segmented day__switch">
+                            <input type="radio" name="journee" id="journee-masse" value="masse" checked>
+                            <label for="journee-masse">Prise de masse</label>
+                            <input type="radio" name="journee" id="journee-seche" value="seche">
+                            <label for="journee-seche">Perte de gras</label>
+                        </div>
+                    </div>
+
+                    <div class="day__panel" data-journee="masse">
+                        <div class="day__media">
+                            <img src="images/journee-masse.webp" alt="Poêlée de pâtes au bœuf" width="800" height="533" loading="lazy">
+                            <div class="day__total"><strong>≈ 2 950</strong><span>kcal / jour</span><em class="day__prot"></em></div>
+                        </div>
+                        <div class="day__menu">
+                        <ol class="meals">
+                            <li class="meal"><span class="meal__time">Petit-déjeuner</span><p class="meal__desc">3 œufs, 4 tranches de pain, une banane et un grand verre de lait</p><div class="meal__nums"><span class="meal__kcal">850</span><span class="meal__prot"></span></div></li>
+                            <li class="meal"><span class="meal__time">Déjeuner</span><p class="meal__desc">Une grande assiette de riz, du poulet et des légumes</p><div class="meal__nums"><span class="meal__kcal">900</span><span class="meal__prot"></span></div></li>
+                            <li class="meal"><span class="meal__time">Collation</span><p class="meal__desc">Un yaourt, une poignée de noix et un fruit</p><div class="meal__nums"><span class="meal__kcal">400</span><span class="meal__prot"></span></div></li>
+                            <li class="meal"><span class="meal__time">Dîner</span><p class="meal__desc">Des pâtes avec de la viande hachée et de la sauce tomate</p><div class="meal__nums"><span class="meal__kcal">800</span><span class="meal__prot"></span></div></li>
+                        </ol>
+                        <button type="button" class="btn btn--ghost day__shuffle">🔀 Nouvelle journée</button>
+                        </div>
+                    </div>
+
+                    <div class="day__panel" data-journee="seche" hidden>
+                        <div class="day__media">
+                            <img src="images/journee-seche.webp" alt="Pavé de saumon grillé et légumes" width="800" height="533" loading="lazy">
+                            <div class="day__total"><strong>≈ 2 000</strong><span>kcal / jour</span><em class="day__prot"></em></div>
+                        </div>
+                        <div class="day__menu">
+                        <ol class="meals">
+                            <li class="meal"><span class="meal__time">Petit-déjeuner</span><p class="meal__desc">2 œufs, 2 tranches de pain, un fruit et un verre de lait</p><div class="meal__nums"><span class="meal__kcal">500</span><span class="meal__prot"></span></div></li>
+                            <li class="meal"><span class="meal__time">Déjeuner</span><p class="meal__desc">Une assiette de riz, du poulet et des légumes</p><div class="meal__nums"><span class="meal__kcal">650</span><span class="meal__prot"></span></div></li>
+                            <li class="meal"><span class="meal__time">Collation</span><p class="meal__desc">Un fromage blanc et une pomme</p><div class="meal__nums"><span class="meal__kcal">200</span><span class="meal__prot"></span></div></li>
+                            <li class="meal"><span class="meal__time">Dîner</span><p class="meal__desc">Une bonne portion de poisson, des pommes de terre et de la salade</p><div class="meal__nums"><span class="meal__kcal">650</span><span class="meal__prot"></span></div></li>
+                        </ol>
+                        <button type="button" class="btn btn--ghost day__shuffle">🔀 Nouvelle journée</button>
+                        </div>
+                    </div>
+
+                    <div class="day__foot">
+                        <p class="day__note">Exemples pour une personne d'environ 75 kg. Touche « Autre idée » pour varier tes repas. Tes besoins réels dépendent de ton profil.</p>
+                        <a href="#calculateur" class="btn btn--primary">Calcule tes besoins exacts</a>
+                    </div>
+                </div>
+
+                <ul class="tips">
+                    <li class="tip reveal">
+                        <span class="tip__icon">💧</span>
+                        <h4>Hydratation</h4>
+                        <p>Environ 35 ml d'eau par kg de poids chaque jour, et davantage les jours d'entraînement.</p>
+                    </li>
+                    <li class="tip reveal">
+                        <span class="tip__icon">⏱️</span>
+                        <h4>Autour de la séance</h4>
+                        <p>Un repas avec protéines et glucides 1 à 3 h avant, et un autre dans les heures qui suivent.</p>
+                    </li>
+                    <li class="tip reveal">
+                        <span class="tip__icon">🎯</span>
+                        <h4>Régularité</h4>
+                        <p>80 % de bons choix tenus sur la durée valent mieux qu'un régime parfait abandonné en deux semaines.</p>
+                    </li>
+                    <li class="tip reveal">
+                        <span class="tip__icon">😴</span>
+                        <h4>Sommeil</h4>
+                        <p>7 à 9 h par nuit : c'est pendant le repos que le muscle se reconstruit.</p>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
         <!-- ===== CALCULATEUR ===== -->
-        <section class="section" id="calculateur">
+        <section class="section section--alt" id="calculateur">
             <div class="container">
                 <header class="section__header reveal">
                     <p class="section__tag">Calculateur</p>
@@ -288,12 +448,13 @@
 
         <div class="footer__bottom">
             <div class="container">
-                <p>&copy; <span id="year"></span> Iron Pulse. Tous droits réservés.</p>
+                <p>&copy; <span id="year"></span> Iron Pulse. Tous droits réservés. Photos : <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.</p>
                 <a href="#accueil" class="footer__top" aria-label="Retour en haut">↑ Haut de page</a>
             </div>
         </div>
     </footer>
 
+    <script src="aliments.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
