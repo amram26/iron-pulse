@@ -46,8 +46,8 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 ## Déploiement
 
 - Code sur GitHub : https://github.com/amram26/iron-pulse (branche `main`).
-- Hébergé sur **Cloudflare Pages**. Projet relié à GitHub en cours de mise en place : aucune commande de build, **répertoire de sortie `public`** — chaque push sur `main` redéploie le site.
-- Ancien projet en envoi direct `iron-pulse` (https://iron-pulse-b9o.pages.dev) : à supprimer une fois le projet relié à GitHub opérationnel.
+- Hébergé sur **Cloudflare Pages**, projet `iron-pulse-site` relié à GitHub : **https://iron-pulse-site.pages.dev**. Aucune commande de build, **répertoire de sortie `public`** — chaque push sur `main` redéploie le site (~1 min).
+- Ancien projet en envoi direct `iron-pulse` (https://iron-pulse-b9o.pages.dev) : obsolète, à supprimer.
 - Le projet Cloudflare `zombie-gamer` n'a rien à voir avec Iron Pulse : ne jamais y toucher.
 
 ## Conventions de code
