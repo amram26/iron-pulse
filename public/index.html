@@ -8,8 +8,9 @@
     <title>Iron Pulse — Musculation & Performance</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Heebo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
 </head>
 <body>
 
@@ -30,6 +31,12 @@
                     <li><a href="#contact" class="nav__link">Contact</a></li>
                 </ul>
             </nav>
+
+            <div class="lang-switch" role="group" aria-label="Langue">
+                <button type="button" data-lang="fr" lang="fr" aria-label="Français">FR</button>
+                <button type="button" data-lang="en" lang="en" aria-label="English">EN</button>
+                <button type="button" data-lang="he" lang="he" aria-label="עברית">עב</button>
+            </div>
 
             <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav">
                 <span></span>
@@ -478,6 +485,8 @@
         </div>
     </footer>
 
+    <script src="i18n/en.js"></script>
+    <script src="i18n/he.js"></script>
     <script src="aliments.js"></script>
     <script src="script.js"></script>
 </body>

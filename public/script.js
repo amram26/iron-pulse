@@ -163,8 +163,11 @@ function initCarrousel(piste) {
         const point = document.createElement('button');
         point.type = 'button';
         point.tabIndex = -1;
+        // Défilement relatif à la position actuelle : fonctionne de gauche à droite comme de droite à gauche
         point.addEventListener('click', () => {
-            piste.scrollTo({ left: element.offsetLeft - (piste.clientWidth - element.offsetWidth) / 2, behavior: 'smooth' });
+            const decalage = element.getBoundingClientRect().left + element.offsetWidth / 2
+                - (piste.getBoundingClientRect().left + piste.clientWidth / 2);
+            piste.scrollBy({ left: decalage, behavior: 'smooth' });
         });
         points.appendChild(point);
     });
@@ -172,11 +175,13 @@ function initCarrousel(piste) {
 
     // Le point actif correspond à la carte la plus proche du centre
     const majPoints = () => {
-        const centre = piste.scrollLeft + piste.clientWidth / 2;
+        const boite = piste.getBoundingClientRect();
+        const centre = boite.left + boite.width / 2;
         let actif = 0;
         let ecartMin = Infinity;
         elements.forEach((element, i) => {
-            const ecart = Math.abs(element.offsetLeft + element.offsetWidth / 2 - centre);
+            const rect = element.getBoundingClientRect();
+            const ecart = Math.abs(rect.left + rect.width / 2 - centre);
             if (ecart < ecartMin) {
                 ecartMin = ecart;
                 actif = i;
@@ -261,15 +266,15 @@ function initJournee(panel) {
 
     const majTotal = () => {
         const somme = colonne => choix.reduce((total, idx, i) => total + idees[i][idx][colonne], 0);
-        totalEl.textContent = `≈ ${(Math.round(somme(1) / 50) * 50).toLocaleString('fr-FR')}`;
-        totalProtEl.textContent = `🥩 ${somme(2)} g de protéines`;
+        totalEl.textContent = `≈ ${(Math.round(somme(1) / 50) * 50).toLocaleString(LOCALE)}`;
+        totalProtEl.textContent = t('🥩 {n} g de protéines', { n: somme(2) });
     };
 
     const afficherRepas = (i, idx, animer = true) => {
         choix[i] = idx;
         const [description, kcal, proteines] = idees[i][idx];
         const desc = repas[i].querySelector('.meal__desc');
-        desc.textContent = description;
+        desc.textContent = t(description);
         repas[i].querySelector('.meal__kcal').textContent = kcal;
         repas[i].querySelector('.meal__prot').textContent = proteines;
         repas[i].querySelector('.meal__swap span').textContent = `${idx + 1}/${idees[i].length}`;
@@ -286,8 +291,8 @@ function initJournee(panel) {
         const bouton = document.createElement('button');
         bouton.type = 'button';
         bouton.className = 'meal__swap';
-        bouton.setAttribute('aria-label', `Autre idée : ${moment}`);
-        bouton.innerHTML = `↻ Autre idée <span>1/${idees[i].length}</span>`;
+        bouton.setAttribute('aria-label', t('Autre idée : {moment}', { moment }));
+        bouton.innerHTML = `↻ ${t('Autre idée')} <span>1/${idees[i].length}</span>`;
         bouton.addEventListener('click', () => {
             afficherRepas(i, (choix[i] + 1) % idees[i].length);
             majTotal();
@@ -324,7 +329,8 @@ const normaliser = texte => texte
     .replace(/æ/g, 'ae')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[֑-ׇ]/g, '')          // voyelles et signes hébreux (niqqud)
+    .replace(/[^a-z0-9א-ת]+/g, ' ')  // lettres latines, chiffres et lettres hébraïques
     .trim();
 
 // Nombre de fautes pour passer de a à b : lettre ajoutée, retirée, remplacée
@@ -344,15 +350,17 @@ function distance(a, b) {
     return d[a.length][b.length];
 }
 
-const formatValeur = v => v.toLocaleString('fr-FR', { maximumFractionDigits: v < 20 ? 1 : 0 });
+const formatValeur = v => v.toLocaleString(LOCALE, { maximumFractionDigits: v < 20 ? 1 : 0 });
 
 function initRechercheAliments(champ) {
     const resultatsEl = document.getElementById('aliment-resultats');
     const statutEl = document.getElementById('aliment-statut');
 
+    // On cherche dans les noms français ET dans leur traduction (anglais / hébreu)
     const index = ALIMENTS.map(aliment => {
-        const termes = [aliment.nom, ...aliment.alias].map(normaliser);
-        const mots = [...new Set(termes.flatMap(t => [t, ...t.split(' ')]))];
+        const noms = [aliment.nom, ...aliment.alias];
+        const termes = [...new Set([...noms, ...noms.map(nom => t(nom))].map(normaliser))];
+        const mots = [...new Set(termes.flatMap(terme => [terme, ...terme.split(' ')]))];
         return { aliment, termes, mots };
     });
 
@@ -367,7 +375,7 @@ function initRechercheAliments(champ) {
             variantes.forEach(v => {
                 if (termes.includes(v)) score = Math.max(score, 3);
                 else if (mots.some(m => m.startsWith(v))) score = Math.max(score, 2);
-                else if (termes.some(t => t.includes(v))) score = Math.max(score, 1);
+                else if (termes.some(terme => terme.includes(v))) score = Math.max(score, 1);
             });
             if (score) directs.push({ aliment, score });
         });
@@ -393,19 +401,19 @@ function initRechercheAliments(champ) {
     const carte = a => {
         const ratio = a.portion.g / 100;
         const media = a.img
-            ? `<img src="images/aliments/${a.img}.webp" alt="${a.nom}" width="480" height="320" loading="lazy">`
+            ? `<img src="images/aliments/${a.img}.webp" alt="${t(a.nom)}" width="480" height="320" loading="lazy">`
             : `<span class="aliment__emoji" aria-hidden="true">${a.emoji}</span>`;
         return `
             <li class="aliment">
                 <div class="aliment__media">${media}</div>
                 <div class="aliment__info">
-                    <h4 class="aliment__nom">${a.nom}</h4>
-                    <p class="aliment__portion">${a.portion.label} (${a.portion.g} g)</p>
+                    <h4 class="aliment__nom">${t(a.nom)}</h4>
+                    <p class="aliment__portion">${t(a.portion.label)} (${a.portion.g} g)</p>
                     <div class="aliment__chiffres">
-                        <span class="aliment__kcal"><strong>${Math.round(a.kcal * ratio)}</strong> kcal</span>
-                        <span class="aliment__prot"><strong>${formatValeur(a.prot * ratio)} g</strong> protéines</span>
+                        <span class="aliment__kcal"><strong>${Math.round(a.kcal * ratio)}</strong> ${t('kcal')}</span>
+                        <span class="aliment__prot"><strong>${formatValeur(a.prot * ratio)} g</strong> ${t('protéines')}</span>
                     </div>
-                    <p class="aliment__cent">Pour 100 g : ${a.kcal} kcal • ${formatValeur(a.prot)} g prot. • ${formatValeur(a.gluc)} g gluc. • ${formatValeur(a.lip)} g lip.</p>
+                    <p class="aliment__cent">${t('Pour 100 g : {kcal} kcal • {prot} g prot. • {gluc} g gluc. • {lip} g lip.', { kcal: a.kcal, prot: formatValeur(a.prot), gluc: formatValeur(a.gluc), lip: formatValeur(a.lip) })}</p>
                 </div>
             </li>`;
     };
@@ -416,19 +424,19 @@ function initRechercheAliments(champ) {
 
         if (!requete) {
             const populaires = ALIMENTS_POPULAIRES.map(nom => ALIMENTS.find(a => a.nom === nom)).filter(Boolean);
-            statutEl.textContent = 'Les plus recherchés :';
+            statutEl.textContent = t('Les plus recherchés :');
             resultatsEl.innerHTML = populaires.map(carte).join('');
             return;
         }
 
         const { aliments, approchant } = rechercher(requete);
         if (!aliments.length) {
-            statutEl.textContent = `Aucun aliment trouvé pour « ${requete} ». Essaie par exemple : poulet, riz, œuf, banane…`;
+            statutEl.textContent = t('Aucun aliment trouvé pour « {q} ». Essaie par exemple : poulet, riz, œuf, banane…', { q: requete });
             resultatsEl.innerHTML = '';
             return;
         }
 
-        statutEl.textContent = approchant ? `Résultats proches de « ${requete} » :` : '';
+        statutEl.textContent = approchant ? t('Résultats proches de « {q} » :', { q: requete }) : '';
         resultatsEl.innerHTML = aliments.slice(0, MAX_RESULTATS).map(carte).join('');
     };
 
@@ -457,32 +465,35 @@ const CLE_EXERCICES = 'ironpulse-exercices';
 const CLE_CARNET = 'ironpulse-carnet';
 const MAX_ENTREES_CARNET = 20;
 
-const formatKg = kg => `${kg.toLocaleString('fr-FR')} kg`;
+const formatKg = kg => `${kg.toLocaleString(LOCALE)} kg`;
 
 // Conseil de progression à partir de la dernière séance notée (double progression)
 function conseilProgression(exo, schema, entree) {
     const [min, max] = schema.reps.match(/\d+/g).map(Number);
     const valeurs = entree.series.map(s => s.reps);
     const avecPoids = entree.series.some(s => s.kg > 0);
-    const unite = exo.duree ? 's' : 'répétitions';
 
     if (valeurs.every(v => v >= max)) {
-        if (exo.duree) return { type: 'monter', texte: `🔥 Toutes tes séries ont atteint ${max} s : passe à ${max + 15} s la prochaine fois.` };
+        if (exo.duree) return { type: 'monter', texte: t('🔥 Toutes tes séries ont atteint {max} s : passe à {next} s la prochaine fois.', { max, next: max + 15 }) };
         return avecPoids
-            ? { type: 'monter', texte: `🔥 Toutes tes séries ont atteint ${max} répétitions : ajoute 2,5 kg (ou 1 à 2 kg aux haltères) la prochaine fois !` }
-            : { type: 'monter', texte: `🔥 Toutes tes séries ont atteint ${max} répétitions : ajoute un peu de poids ou ralentis la descente.` };
+            ? { type: 'monter', texte: t('🔥 Toutes tes séries ont atteint {max} répétitions : ajoute 2,5 kg (ou 1 à 2 kg aux haltères) la prochaine fois !', { max }) }
+            : { type: 'monter', texte: t('🔥 Toutes tes séries ont atteint {max} répétitions : ajoute un peu de poids ou ralentis la descente.', { max }) };
     }
     if (valeurs.some(v => v < min)) {
-        return { type: 'baisser', texte: `⚠️ Certaines séries sont sous ${min} ${unite} : garde ce poids et vise au moins ${min}, ou enlève 2,5 kg.` };
+        return exo.duree
+            ? { type: 'baisser', texte: t('⚠️ Certaines séries sont sous {min} s : garde la même charge et vise au moins {min} s.', { min }) }
+            : { type: 'baisser', texte: t('⚠️ Certaines séries sont sous {min} répétitions : garde ce poids et vise au moins {min}, ou enlève 2,5 kg.', { min }) };
     }
-    return { type: 'garder', texte: `💪 Garde le même poids et essaie de gagner 1 ${exo.duree ? 'à 5 s' : 'répétition'} sur une série. À ${max} partout, tu pourras monter.` };
+    return exo.duree
+        ? { type: 'garder', texte: t('💪 Essaie de tenir 5 s de plus sur une série. À {max} s partout, tu pourras monter.', { max }) }
+        : { type: 'garder', texte: t('💪 Garde le même poids et essaie de gagner 1 répétition sur une série. À {max} partout, tu pourras monter.', { max }) };
 }
 
 // 90 → « 1 min 30 », 45 → « 45 s »
 const formatRepos = sec => {
-    if (sec < 60) return `${sec} s`;
+    if (sec < 60) return t('{n} s', { n: sec });
     const reste = sec % 60;
-    return `${Math.floor(sec / 60)} min${reste ? ` ${reste}` : ''}`;
+    return reste ? t('{m} min {s}', { m: Math.floor(sec / 60), s: reste }) : t('{m} min', { m: sec / 60 });
 };
 
 function initProgramme() {
@@ -493,18 +504,18 @@ function initProgramme() {
     const minuteur = creerMinuteur();
 
     // ---------- En-tête de page ----------
-    document.title = `Programme ${prog.titre} — Iron Pulse`;
-    $('prog-tag').textContent = prog.tag;
-    $('prog-titre').innerHTML = `Programme <span class="text-gradient">${prog.titre}</span>`;
-    $('prog-intro').textContent = prog.intro;
+    document.title = t('Programme {titre} — Iron Pulse', { titre: t(prog.titre) });
+    $('prog-tag').textContent = t(prog.tag);
+    $('prog-titre').innerHTML = t('Programme <span class="text-gradient">{titre}</span>', { titre: t(prog.titre) });
+    $('prog-intro').textContent = t(prog.intro);
     $('prog-bg').style.backgroundImage =
         `linear-gradient(180deg, rgba(10, 10, 11, 0.55) 0%, rgba(10, 10, 11, 0.8) 60%, #0a0a0b 100%), url('${prog.img}')`;
     $('prog-calc').href = `index.html?objectif=${objectif === 'force' ? 'maintien' : objectif}#calculateur`;
     $('prog-regles').innerHTML = prog.regles.map(([icone, titre, texte]) => `
         <li class="rule">
             <span class="rule__icon" aria-hidden="true">${icone}</span>
-            <h4>${titre}</h4>
-            <p>${texte}</p>
+            <h4>${t(titre)}</h4>
+            <p>${t(texte)}</p>
         </li>`).join('');
 
     // ---------- État : nombre de séances et exercices choisis ----------
@@ -566,24 +577,25 @@ function initProgramme() {
         const exo = EXERCICES[e.id];
         const s = schema(exo, e.role, i);
         const alts = alternatives(liste, i);
+        const nom = t(exo.nom);
         const media = exo.img
-            ? `<img src="images/exercices/${exo.img.includes('.') ? exo.img : `${exo.img}.webp`}" alt="${exo.nom}" width="400" height="300" loading="lazy">`
+            ? `<img src="images/exercices/${exo.img.includes('.') ? exo.img : `${exo.img}.webp`}" alt="${nom}" width="400" height="300" loading="lazy">`
             : `<span class="exo__emoji" aria-hidden="true">${exo.emoji}</span>`;
 
         const derniere = (carnet[e.id] || [])[0];
-        const unite = exo.duree ? 's' : 'rép.';
+        const unite = t(exo.duree ? 's' : 'rép.');
         let historique = '';
         if (derniere) {
-            const date = new Date(derniere.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+            const date = new Date(derniere.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
             const poids = [...new Set(derniere.series.map(x => x.kg).filter(kg => kg > 0))];
-            const resume = `${poids.length === 1 ? `${formatKg(poids[0])} × ` : ''}${derniere.series.map(x => (poids.length > 1 && x.kg ? `${x.kg.toLocaleString('fr-FR')}×${x.reps}` : x.reps)).join(' · ')} ${unite}`;
+            const resume = `${poids.length === 1 ? `${formatKg(poids[0])} × ` : ''}${derniere.series.map(x => (poids.length > 1 && x.kg ? `${x.kg.toLocaleString(LOCALE)}×${x.reps}` : x.reps)).join(' · ')} ${unite}`;
             const precedente = (carnet[e.id] || [])[1];
             const maxDernier = Math.max(0, ...derniere.series.map(x => x.kg || 0));
             const maxPrecedent = precedente ? Math.max(0, ...precedente.series.map(x => x.kg || 0)) : 0;
             const gain = maxPrecedent && maxDernier > maxPrecedent ? ` <span class="carnet__gain">📈 +${formatKg(maxDernier - maxPrecedent)}</span>` : '';
             const conseil = conseilProgression(exo, s, derniere);
             historique = `
-                <p class="carnet__dernier">📒 Dernière fois (${date}) : <strong>${resume}</strong>${gain}</p>
+                <p class="carnet__dernier">${t('📒 Dernière fois ({date}) :', { date })} <strong dir="ltr">${resume}</strong>${gain}</p>
                 <p class="carnet__conseil carnet__conseil--${conseil.type}">${conseil.texte}</p>`;
         }
 
@@ -591,9 +603,9 @@ function initProgramme() {
             const precedent = derniere?.series[n];
             return `
                 <div class="carnet__ligne">
-                    <span>Série ${n + 1}</span>
-                    <label><input type="number" name="kg" inputmode="decimal" min="0" step="0.5" placeholder="${exo.duree ? '—' : '0'}" value="${precedent?.kg || ''}" aria-label="Poids série ${n + 1}"${exo.duree ? ' disabled' : ''}> kg</label>
-                    <label><input type="number" name="reps" inputmode="numeric" min="0" step="1" placeholder="${s.reps.match(/\d+/)[0]}" aria-label="${exo.duree ? 'Secondes' : 'Répétitions'} série ${n + 1}"> ${unite}</label>
+                    <span>${t('Série {n}', { n: n + 1 })}</span>
+                    <label><input type="number" name="kg" inputmode="decimal" min="0" step="0.5" placeholder="${exo.duree ? '—' : '0'}" value="${precedent?.kg || ''}" aria-label="${t('Poids série {n}', { n: n + 1 })}"${exo.duree ? ' disabled' : ''}> kg</label>
+                    <label><input type="number" name="reps" inputmode="numeric" min="0" step="1" placeholder="${s.reps.match(/\d+/)[0]}" aria-label="${t(exo.duree ? 'Secondes série {n}' : 'Répétitions série {n}', { n: n + 1 })}"> ${unite}</label>
                 </div>`;
         }).join('');
 
@@ -602,7 +614,7 @@ function initProgramme() {
                 ${historique}
                 <form class="carnet__form" data-carnet="${i}" ${carnetOuvert === i ? '' : 'hidden'}>
                     ${lignes}
-                    <button type="submit" class="btn btn--primary carnet__save">✓ Enregistrer</button>
+                    <button type="submit" class="btn btn--primary carnet__save">${t('✓ Enregistrer')}</button>
                 </form>
             </div>`;
 
@@ -610,18 +622,18 @@ function initProgramme() {
             <li class="exo" data-index="${i}">
                 <div class="exo__media">${media}<span class="exo__num">${i + 1}</span></div>
                 <div class="exo__info">
-                    <h4 class="exo__nom">${exo.nom}</h4>
-                    <p class="exo__muscles">${exo.muscles}</p>
+                    <h4 class="exo__nom">${nom}</h4>
+                    <p class="exo__muscles">${t(exo.muscles)}</p>
                     <div class="exo__chiffres">
-                        <span class="exo__series"><strong>${s.series} séries</strong> × ${s.reps}${exo.duree ? '' : ' rép.'}</span>
-                        <span class="exo__repos">⏱ <strong>${formatRepos(s.repos)}</strong> de repos entre les séries</span>
+                        <span class="exo__series"><strong>${t('{n} séries', { n: s.series })}</strong> × ${t(s.reps)}${exo.duree ? '' : ` ${t('rép.')}`}</span>
+                        <span class="exo__repos">⏱ <strong>${formatRepos(s.repos)}</strong> ${t('de repos entre les séries')}</span>
                     </div>
-                    <p class="exo__conseil">💡 ${exo.conseil}</p>
+                    <p class="exo__conseil">💡 ${t(exo.conseil)}</p>
                 </div>
                 <div class="exo__actions">
-                    <button type="button" class="exo__btn exo__btn--timer" data-repos="${s.repos}" data-nom="${exo.nom}">▶ Lancer le repos · ${formatRepos(s.repos)}</button>
-                    <button type="button" class="exo__btn exo__btn--note" data-noter="${i}" aria-expanded="${carnetOuvert === i}" aria-label="Noter mes séries">📝 Noter</button>
-                    ${alts.length > 1 ? `<button type="button" class="exo__btn" data-changer="${i}" aria-label="Changer d'exercice (${alts.indexOf(e.id) + 1} sur ${alts.length})">⇄ Changer <span>${alts.indexOf(e.id) + 1}/${alts.length}</span></button>` : ''}
+                    <button type="button" class="exo__btn exo__btn--timer" data-repos="${s.repos}" data-nom="${nom}">${t('▶ Lancer le repos · {temps}', { temps: formatRepos(s.repos) })}</button>
+                    <button type="button" class="exo__btn exo__btn--note" data-noter="${i}" aria-expanded="${carnetOuvert === i}" aria-label="${t('Noter mes séries')}">${t('📝 Noter')}</button>
+                    ${alts.length > 1 ? `<button type="button" class="exo__btn" data-changer="${i}" aria-label="${t("Changer d'exercice ({i} sur {n})", { i: alts.indexOf(e.id) + 1, n: alts.length })}">${t('⇄ Changer')} <span>${alts.indexOf(e.id) + 1}/${alts.length}</span></button>` : ''}
                 </div>
                 ${carnetHtml}
             </li>`;
@@ -635,13 +647,13 @@ function initProgramme() {
         $('prog-seance').innerHTML = `
             <article class="seance">
                 <header class="seance__head">
-                    <h3 class="seance__title">${seance.nom}</h3>
-                    <p class="seance__meta">${seance.focus} • ${liste.length} exercices • ≈ ${dureeSeance(liste)} min</p>
+                    <h3 class="seance__title">${t(seance.nom)}</h3>
+                    <p class="seance__meta">${t('{focus} • {n} exercices • ≈ {d} min', { focus: t(seance.focus), n: liste.length, d: dureeSeance(liste) })}</p>
                 </header>
-                <p class="seance__note">🔥 <strong>Échauffement :</strong> 5 à 10 min de cardio léger, puis 2 séries légères sur le premier exercice.</p>
+                <p class="seance__note">🔥 <strong>${t('Échauffement :')}</strong> ${t('5 à 10 min de cardio léger, puis 2 séries légères sur le premier exercice.')}</p>
                 <ol class="exos">${liste.map((_, i) => carteExercice(liste, i)).join('')}</ol>
-                ${prog.cardio ? `<p class="seance__note seance__note--cardio">🏃 <strong>Pour finir :</strong> 15 min de cardio (vélo, tapis ou rameur) à une allure où tu peux encore parler.</p>` : ''}
-                ${modifiee ? `<button type="button" class="seance__reset" data-reset>↺ Revenir aux exercices de base</button>` : ''}
+                ${prog.cardio ? `<p class="seance__note seance__note--cardio">🏃 <strong>${t('Pour finir :')}</strong> ${t('15 min de cardio (vélo, tapis ou rameur) à une allure où tu peux encore parler.')}</p>` : ''}
+                ${modifiee ? `<button type="button" class="seance__reset" data-reset>${t('↺ Revenir aux exercices de base')}</button>` : ''}
             </article>`;
 
         animer.forEach(i => $('prog-seance').querySelector(`.exo[data-index="${i}"]`)?.classList.add('swapped'));
@@ -661,12 +673,12 @@ function initProgramme() {
         if (!seances.includes(seanceActive)) seanceActive = seances[0];
         carnetOuvert = null;
 
-        $('prog-split').textContent = split.description;
+        $('prog-split').textContent = t(split.description);
         $('prog-semaine').innerHTML = split.semaine.map((id, i) => id
-            ? `<li class="week__day" data-seance="${id}"><button type="button" data-seance="${id}"><span>${NOMS_JOURS[i]}</span><strong>${SEANCES[id].court}</strong></button></li>`
-            : `<li class="week__day week__day--rest"><span>${NOMS_JOURS[i]}</span><strong>Repos</strong></li>`).join('');
+            ? `<li class="week__day" data-seance="${id}"><button type="button" data-seance="${id}"><span>${t(NOMS_JOURS[i])}</span><strong>${t(SEANCES[id].court)}</strong></button></li>`
+            : `<li class="week__day week__day--rest"><span>${t(NOMS_JOURS[i])}</span><strong>${t('Repos')}</strong></li>`).join('');
         $('prog-onglets').innerHTML = seances.map(id =>
-            `<button type="button" class="session-tab" role="tab" data-seance="${id}">${SEANCES[id].nom}</button>`).join('');
+            `<button type="button" class="session-tab" role="tab" data-seance="${id}">${t(SEANCES[id].nom)}</button>`).join('');
         afficherSeance();
     };
 
@@ -827,7 +839,7 @@ function creerMinuteur() {
         restant = 0;
         afficher();
         el.classList.add('fini');
-        labelEl.textContent = "C'est reparti ! 💪";
+        labelEl.textContent = t("C'est reparti ! 💪");
         if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
         bip();
         fermeture = setTimeout(fermer, 6000);
@@ -842,7 +854,7 @@ function creerMinuteur() {
 
     const majBoutonPause = () => {
         boutonPause.textContent = enPause ? '▶' : '❚❚';
-        boutonPause.setAttribute('aria-label', enPause ? 'Reprendre' : 'Mettre en pause');
+        boutonPause.setAttribute('aria-label', t(enPause ? 'Reprendre' : 'Mettre en pause'));
     };
 
     // Le son doit être préparé pendant un clic de l'utilisateur (règle des navigateurs mobiles)
@@ -862,7 +874,7 @@ function creerMinuteur() {
         fin = Date.now() + restant;
         enPause = false;
         majBoutonPause();
-        labelEl.textContent = `Repos · ${nom}`;
+        labelEl.textContent = t('Repos · {nom}', { nom });
         el.classList.remove('fini');
         el.hidden = false;
         afficher();
@@ -913,7 +925,7 @@ const LIMITES = {
     taille: { min: 130, max: 230, nom: 'la taille' }
 };
 
-const formatNombre = n => Math.round(n).toLocaleString('fr-FR');
+const formatNombre = n => Math.round(n).toLocaleString(LOCALE);
 
 function calculerBesoins({ sexe, age, poids, taille, activite, objectif }) {
     const reglages = OBJECTIFS[objectif];
@@ -957,7 +969,7 @@ function initCalculator(form) {
             const v = valeurs[champ];
             const invalide = Number.isNaN(v) || v < min || v > max;
             form.elements[champ].classList.toggle('invalid', invalide);
-            if (invalide && !erreur) erreur = `Vérifie ${nom} : la valeur doit être comprise entre ${min} et ${max}.`;
+            if (invalide && !erreur) erreur = t('Vérifie {nom} : la valeur doit être comprise entre {min} et {max}.', { nom: t(nom), min, max });
         }
         return erreur;
     };
@@ -971,22 +983,22 @@ function initCalculator(form) {
         $('res-bmr').textContent = formatNombre(r.bmr);
         $('res-tdee').textContent = formatNombre(r.tdee);
         $('res-target').textContent = formatNombre(r.cible);
-        $('res-target-label').textContent = `Objectif — ${r.reglages.label}`;
+        $('res-target-label').textContent = t('Objectif — {label}', { label: t(r.reglages.label) });
 
         const ajustement = r.reglages.ajustement;
         $('res-target-hint').textContent = r.plafonne
-            ? 'Limité à ton métabolisme de base pour préserver ta santé.'
+            ? t('Limité à ton métabolisme de base pour préserver ta santé.')
             : ajustement === 0
-                ? 'Égal à ta dépense journalière.'
-                : `${ajustement > 0 ? '+' : '−'}${Math.abs(ajustement)} kcal par rapport à ta dépense journalière.`;
+                ? t('Égal à ta dépense journalière.')
+                : t('{n} kcal par rapport à ta dépense journalière.', { n: `${ajustement > 0 ? '+' : '−'}${Math.abs(ajustement)}` });
 
         $('res-prot').textContent = formatNombre(r.proteines);
         $('res-carbs').textContent = formatNombre(r.glucides);
         $('res-fat').textContent = formatNombre(r.lipides);
 
-        $('info-prot').textContent = `${r.reglages.proteines.toLocaleString('fr-FR')} g / kg • ${formatNombre(kcal.proteines)} kcal • ${pourcent(kcal.proteines)} %`;
-        $('info-carbs').textContent = `Le reste de tes calories • ${formatNombre(kcal.glucides)} kcal • ${pourcent(kcal.glucides)} %`;
-        $('info-fat').textContent = `${r.reglages.lipides.toLocaleString('fr-FR')} g / kg • ${formatNombre(kcal.lipides)} kcal • ${pourcent(kcal.lipides)} %`;
+        $('info-prot').textContent = t('{g} g / kg • {kcal} kcal • {p} %', { g: r.reglages.proteines.toLocaleString(LOCALE), kcal: formatNombre(kcal.proteines), p: pourcent(kcal.proteines) });
+        $('info-carbs').textContent = t('Le reste de tes calories • {kcal} kcal • {p} %', { kcal: formatNombre(kcal.glucides), p: pourcent(kcal.glucides) });
+        $('info-fat').textContent = t('{g} g / kg • {kcal} kcal • {p} %', { g: r.reglages.lipides.toLocaleString(LOCALE), kcal: formatNombre(kcal.lipides), p: pourcent(kcal.lipides) });
 
         // Largeur des barres appliquée après l'affichage pour déclencher l'animation
         emptyEl.hidden = true;

@@ -2864,3 +2864,113 @@ body {
         scroll-behavior: auto;
     }
 }
+
+/* ==========================================================
+   LANGUES — sélecteur FR / EN / עב et hébreu
+   ========================================================== */
+.lang-switch {
+    position: relative;
+    z-index: 110;
+    display: flex;
+    gap: 2px;
+    margin-inline-start: auto;
+    margin-inline-end: 6px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(10, 10, 11, 0.6);
+}
+
+.lang-switch button {
+    min-width: 34px;
+    height: 32px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: color var(--transition), background var(--transition);
+}
+
+.lang-switch button[lang="he"] {
+    font-family: 'Heebo', var(--font-body);
+    font-size: 0.8rem;
+}
+
+.lang-switch button.active {
+    background: var(--gradient);
+    color: #fff;
+}
+
+@media (hover: hover) {
+    .lang-switch button:not(.active):hover {
+        color: var(--text);
+    }
+}
+
+@media (min-width: 769px) {
+    .nav {
+        margin-inline-start: auto;
+    }
+
+    .lang-switch {
+        margin-inline-start: 28px;
+        margin-inline-end: 0;
+    }
+}
+
+/* ---------- Hébreu : police adaptée ---------- */
+:root[lang="he"] {
+    --font-body: 'Heebo', system-ui, sans-serif;
+    --font-title: 'Heebo', system-ui, sans-serif;
+}
+
+/* Le logo reste en caractères latins */
+[lang="he"] .logo {
+    font-family: 'Bebas Neue', Impact, sans-serif;
+}
+
+/* Heebo n'est pas condensée comme Bebas Neue : titres plus gras, un peu plus petits */
+[lang="he"] :is(.hero__title, .section__title, .card__title, .food__title, .day__title,
+    .search__title, .freq__title, .seance__title, .cta h3, .stat__value, .macro__head strong,
+    .meal__kcal, .timer__temps, .hero__stats strong, .day__total strong, .exo__num) {
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+[lang="he"] .hero__title {
+    font-size: clamp(2.4rem, 10vw, 5rem);
+    line-height: 1.1;
+}
+
+[lang="he"] .section__title {
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    line-height: 1.15;
+}
+
+[lang="he"] :is(.card__title, .food__title, .day__title, .search__title, .freq__title, .seance__title) {
+    font-size: 1.6rem;
+    line-height: 1.2;
+}
+
+[lang="he"] .nav__link {
+    font-weight: 700;
+}
+
+/* ---------- Hébreu : la mise en page ne bouge pas ----------
+   La page reste de gauche à droite dans toutes les langues (choix du
+   propriétaire). Chaque bloc de texte prend seul son sens de lecture
+   (« plaintext ») pour que la ponctuation hébraïque soit au bon endroit,
+   et l'alignement reste celui de la version française. */
+[lang="he"] body {
+    text-align: left;
+}
+
+[lang="he"] :where(h1, h2, h3, h4, p, li, label, legend, button, a, span, strong, small, em, figcaption, option) {
+    unicode-bidi: plaintext;
+}

@@ -2,7 +2,17 @@
 
 Site vitrine dédié à la musculation et à la performance. HTML/CSS/JS pur, sans framework ni étape de build.
 
-**Tout le contenu visible du site doit être rédigé en français** (textes, `aria-label`, `alt`, messages JS). Le tutoiement est utilisé pour s'adresser au visiteur.
+**Le site est écrit en français** (langue source : textes, `aria-label`, `alt`, messages JS ; tutoiement) **et traduit en anglais et en hébreu** — voir « Langues » ci-dessous. Toute nouvelle phrase visible doit être ajoutée aux traductions.
+
+## Langues (FR / EN / HE)
+
+- `public/i18n.js` (chargé dans le `<head>`) choisit la langue (`?lang=` → choix enregistré `ironpulse-langue` → langue du téléphone → français), fixe `lang`/`dir` sur `<html>` et expose `t('texte {x}', { x })` et `LOCALE`.
+- `public/i18n/en.js` et `public/i18n/he.js` : dictionnaires **texte français exact → traduction** (`TRADUCTIONS.en`, `TRADUCTIONS.he`), chargés avant les données et `script.js`.
+- Textes écrits en dur dans le HTML : traduits automatiquement au chargement (nœuds texte + `placeholder`, `aria-label`, `alt`, `title`) si la phrase française existe dans le dictionnaire.
+- Textes générés en JS : toujours passer par `t()`, avec des variables `{…}` pour les nombres (ex. `t('{n} séries', { n })`) ; nombres et dates avec `LOCALE`, jamais `'fr-FR'` en dur. Les données (`programmes.js`, `aliments.js`, `IDEES_REPAS`) restent en français et sont traduites à l'affichage avec `t()`.
+- **La mise en page ne bouge jamais quand on change de langue** (choix du propriétaire) : pas de `dir="rtl"`, même en hébreu. Seules les phrases hébraïques se lisent de droite à gauche grâce à `unicode-bidi: plaintext` (bloc « Hébreu » à la fin de `style.css`). Police Heebo, formes **plurielles neutres** (« לחצו », « בחרו »), termes de salle israéliens.
+- Ajouter un texte = l'ajouter en français dans le code **et** dans `en.js` / `he.js` (même clé, mêmes `{variables}` et balises). La recherche d'aliments cherche aussi dans les noms traduits (lettres hébraïques acceptées).
+- Sélecteur « FR · EN · עב » dans l'en-tête de chaque page ; changer de langue recharge la page avec `?lang=`.
 
 ## Lancer le site
 
