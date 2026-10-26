@@ -2988,3 +2988,439 @@ body {
     background: rgba(255, 107, 26, 0.06);
     font-size: 0.85rem;
 }
+
+/* ==========================================================
+   SÉANCE GUIDÉE (facultative)
+   Plein écran : un exercice à la fois, gros boutons en bas,
+   minuteur de repos affiché par-dessus.
+   ========================================================== */
+.seance__guide {
+    padding: 16px 20px 0;
+    text-align: center;
+}
+
+.seance__guide .btn {
+    width: 100%;
+    min-height: 54px;
+    font-size: 1.02rem;
+}
+
+.seance__guide p {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+body.guide-ouvert {
+    overflow: hidden;
+}
+
+.guide {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(ellipse at top, rgba(255, 107, 26, 0.08), transparent 60%),
+        var(--bg);
+    animation: calcFadeIn 0.3s ease;
+}
+
+/* Le minuteur passe au-dessus de la séance guidée, juste au-dessus des boutons du bas */
+body.guide-ouvert .timer {
+    z-index: 130;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+}
+
+.guide__haut {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.guide__fermer {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.guide__titre {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.guide__titre strong {
+    overflow: hidden;
+    font-size: 1rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.guide__titre span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.guide__chrono {
+    font-family: var(--font-title);
+    font-size: 1.7rem;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--neon-orange);
+}
+
+.guide__progression {
+    height: 4px;
+    background: var(--surface);
+}
+
+.guide__progression span {
+    display: block;
+    height: 100%;
+    background: var(--gradient);
+    box-shadow: 0 0 10px rgba(255, 60, 40, 0.6);
+    transition: width 0.4s ease;
+}
+
+.guide__corps {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 120px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.guide__contenu {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.guide__media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 30vh;
+    margin-bottom: 16px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface-hover);
+}
+
+.guide__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.guide__media .exo__emoji {
+    font-size: 4rem;
+}
+
+.guide__nom {
+    font-family: var(--font-title);
+    font-size: 2.2rem;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+}
+
+.guide__cible {
+    margin: 6px 0 10px;
+    color: var(--neon-orange);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.guide__series {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.guide__serie {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: border-color var(--transition), opacity var(--transition), box-shadow var(--transition);
+}
+
+.guide__serie label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 16px minimum : évite le zoom automatique sur iPhone au focus */
+.guide__serie input {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.guide__serie input::-webkit-outer-spin-button,
+.guide__serie input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.guide__serie input::placeholder {
+    color: #71717a;
+}
+
+.guide__serie input:focus {
+    outline: none;
+    border-color: var(--neon-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.2);
+}
+
+.guide__serie input:disabled {
+    opacity: 0.35;
+}
+
+.guide__num {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.guide__serie--actuelle {
+    border-color: var(--neon-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.15), 0 0 24px rgba(255, 45, 85, 0.12);
+}
+
+.guide__serie--actuelle .guide__num {
+    background: var(--gradient);
+    color: #fff;
+}
+
+.guide__serie--faite {
+    opacity: 0.6;
+}
+
+.guide__serie--faite .guide__num {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+}
+
+.guide__bravo {
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(74, 222, 128, 0.1);
+    color: #86efac;
+    font-weight: 600;
+    text-align: center;
+}
+
+.guide__conseil {
+    border-top: 1px solid var(--border);
+}
+
+.guide__conseil summary {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.guide__conseil p {
+    padding-bottom: 8px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.guide__bas {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: 56px 1fr 56px;
+    gap: 10px;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: rgba(10, 10, 11, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.guide__bas .btn {
+    width: 100%;
+    min-height: 56px;
+    padding: 0 12px;
+    font-size: 1.02rem;
+}
+
+.guide__nav {
+    height: 56px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.guide__nav:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.guide__nav:not(:disabled):active,
+.guide__fermer:active {
+    transform: scale(0.95);
+}
+
+/* ---------- Bilan de fin de séance ---------- */
+.guide__fin {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 32px 20px max(32px, env(safe-area-inset-bottom));
+    text-align: center;
+}
+
+.guide__trophee {
+    font-size: 4.5rem;
+    filter: drop-shadow(0 0 24px rgba(255, 107, 26, 0.6));
+    animation: timerIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+.guide__fin h2 {
+    font-family: var(--font-title);
+    font-size: 2.8rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
+.guide__fin > p {
+    color: var(--text-muted);
+}
+
+.guide__stats {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 420px;
+    margin: 14px 0 6px;
+}
+
+.guide__stats li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px 8px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.guide__stats strong {
+    font-family: var(--font-title);
+    font-size: 2.2rem;
+    line-height: 1;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.guide__stats span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.guide__fin .btn {
+    width: 100%;
+    max-width: 420px;
+    min-height: 54px;
+    margin-top: 10px;
+}
+
+.guide__sauve {
+    font-size: 0.9rem;
+}
+
+@media (hover: hover) {
+    .guide__nav:not(:disabled):hover,
+    .guide__fermer:hover {
+        border-color: var(--neon-orange);
+        color: var(--text);
+    }
+}
+
+@media (min-width: 600px) {
+    .seance__guide {
+        padding: 20px 32px 0;
+    }
+
+    .seance__guide .btn {
+        width: auto;
+        min-width: 320px;
+    }
+
+    .guide__bas {
+        padding-left: max(16px, calc((100% - 640px) / 2));
+        padding-right: max(16px, calc((100% - 640px) / 2));
+    }
+}
+
+[lang="he"] :is(.guide__nom, .guide__fin h2, .guide__chrono, .guide__stats strong) {
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+/* Quand le minuteur est affiché, on laisse assez de place pour faire défiler les dernières séries au-dessus */
+body.guide-ouvert:has(.timer:not([hidden])) .guide__corps {
+    padding-bottom: 240px;
+}
+
+/* Contour de focus clavier aux couleurs du site (au lieu de celui du navigateur) */
+.btn:focus-visible,
+.guide__fermer:focus-visible,
+.guide__nav:focus-visible {
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
+}

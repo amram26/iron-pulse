@@ -525,6 +525,8 @@ const CLE_JOURS = 'ironpulse-jours';
 const CLE_EXERCICES = 'ironpulse-exercices';
 const CLE_CARNET = 'ironpulse-carnet';
 const MAX_ENTREES_CARNET = 20;
+const CLE_SEANCE_EN_COURS = 'ironpulse-seance-en-cours';
+const DUREE_REPRISE_SEANCE = 4 * 60 * 60 * 1000; // une séance commencée il y a moins de 4 h peut être reprise
 
 const formatKg = kg => `${kg.toLocaleString(LOCALE)} kg`;
 
@@ -632,6 +634,13 @@ function initProgramme() {
         return Math.round(secondes / 60 / 5) * 5;
     };
 
+    // « 60 kg × 10 · 10 · 9 rép. » (ou « 60×10 · 62,5×8 » si le poids a changé entre les séries)
+    const resumeEntree = (entree, unite) => {
+        const poids = [...new Set(entree.series.map(x => x.kg).filter(kg => kg > 0))];
+        const detail = entree.series.map(x => (poids.length > 1 && x.kg ? `${x.kg.toLocaleString(LOCALE)}×${x.reps}` : x.reps)).join(' · ');
+        return `${poids.length === 1 ? `${formatKg(poids[0])} × ` : ''}${detail} ${unite}`;
+    };
+
     // ---------- Affichage ----------
     const carteExercice = (liste, i) => {
         const e = liste[i];
@@ -648,8 +657,7 @@ function initProgramme() {
         let historique = '';
         if (derniere) {
             const date = new Date(derniere.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
-            const poids = [...new Set(derniere.series.map(x => x.kg).filter(kg => kg > 0))];
-            const resume = `${poids.length === 1 ? `${formatKg(poids[0])} × ` : ''}${derniere.series.map(x => (poids.length > 1 && x.kg ? `${x.kg.toLocaleString(LOCALE)}×${x.reps}` : x.reps)).join(' · ')} ${unite}`;
+            const resume = resumeEntree(derniere, unite);
             const precedente = (carnet[e.id] || [])[1];
             const maxDernier = Math.max(0, ...derniere.series.map(x => x.kg || 0));
             const maxPrecedent = precedente ? Math.max(0, ...precedente.series.map(x => x.kg || 0)) : 0;
@@ -711,6 +719,10 @@ function initProgramme() {
                     <h3 class="seance__title">${t(seance.nom)}</h3>
                     <p class="seance__meta">${t('{focus} • {n} exercices • ≈ {d} min', { focus: t(seance.focus), n: liste.length, d: dureeSeance(liste) })}</p>
                 </header>
+                <div class="seance__guide">
+                    <button type="button" class="btn btn--primary" data-guide-start>${seanceSauvegardee() ? t('▶ Reprendre la séance en cours') : t('▶ Commencer la séance guidée')}</button>
+                    <p>${t('Facultatif : tu peux aussi suivre simplement la liste ci-dessous.')}</p>
+                </div>
                 <p class="seance__note">🔥 <strong>${t('Échauffement :')}</strong> ${t('5 à 10 min de cardio léger, puis 2 séries légères sur le premier exercice.')}</p>
                 <ol class="exos">${liste.map((_, i) => carteExercice(liste, i)).join('')}</ol>
                 ${prog.cardio ? `<p class="seance__note seance__note--cardio">🏃 <strong>${t('Pour finir :')}</strong> ${t('15 min de cardio (vélo, tapis ou rameur) à une allure où tu peux encore parler.')}</p>` : ''}
@@ -778,6 +790,11 @@ function initProgramme() {
     });
 
     $('prog-seance').addEventListener('click', e => {
+        if (e.target.closest('[data-guide-start]')) {
+            ouvrirGuide();
+            return;
+        }
+
         const boutonRepos = e.target.closest('[data-repos]');
         if (boutonRepos) {
             minuteur.lancer(Number(boutonRepos.dataset.repos), boutonRepos.dataset.nom);
@@ -840,6 +857,222 @@ function initProgramme() {
         ecrireStockage(CLE_CARNET, carnet);
         carnetOuvert = null;
         afficherSeance([i]);
+    });
+
+    // ---------- Séance guidée (facultative) ----------
+    // Un exercice à la fois, séries à cocher, minuteur automatique, bilan enregistré dans le carnet.
+    // L'état est sauvegardé à chaque action : une séance interrompue peut être reprise pendant 4 h.
+    const guideEl = $('guide');
+    let guide = null;
+    let chronoGuide = null;
+    let verrouEcran = null;
+
+    const seanceSauvegardee = () => {
+        const etat = lireStockage(CLE_SEANCE_EN_COURS, null);
+        const valide = etat && etat.objectif === objectif && etat.seanceId === seanceActive
+            && Date.now() - etat.debut < DUREE_REPRISE_SEANCE && Array.isArray(etat.exos);
+        return valide ? etat : null;
+    };
+
+    const sauverGuide = () => ecrireStockage(CLE_SEANCE_EN_COURS, guide);
+
+    const nouveauGuide = () => ({
+        objectif,
+        seanceId: seanceActive,
+        debut: Date.now(),
+        index: 0,
+        exos: exercicesSeance(seanceActive).map((e, rang) => {
+            const s = schema(EXERCICES[e.id], e.role, rang);
+            const derniere = (carnet[e.id] || [])[0];
+            return {
+                id: e.id,
+                role: e.role,
+                rang,
+                // Poids pré-rempli avec ceux de la dernière fois
+                series: Array.from({ length: s.series }, (_, n) => ({ kg: derniere?.series[n]?.kg || '', reps: '', fait: false }))
+            };
+        })
+    });
+
+    const formatChrono = ms => {
+        const sec = Math.max(0, Math.floor(ms / 1000));
+        const h = Math.floor(sec / 3600);
+        const mmss = `${String(Math.floor(sec / 60) % 60).padStart(h ? 2 : 1, '0')}:${String(sec % 60).padStart(2, '0')}`;
+        return h ? `${h}:${mmss}` : mmss;
+    };
+
+    // Répétitions proposées par défaut : celles de la dernière fois, sinon le bas de la fourchette
+    const repsParDefaut = (g, n, s) => (carnet[g.id] || [])[0]?.series[n]?.reps || Number(s.reps.match(/\d+/)[0]);
+
+    const garderEcranAllume = async () => {
+        try { verrouEcran = await navigator.wakeLock?.request('screen'); } catch (e) { verrouEcran = null; }
+    };
+
+    const afficherGuide = () => {
+        const g = guide.exos[guide.index];
+        const exo = EXERCICES[g.id];
+        const s = schema(exo, g.role, g.rang);
+        const nom = t(exo.nom);
+        const unite = t(exo.duree ? 's' : 'rép.');
+        const actuelle = g.series.findIndex(serie => !serie.fait);
+        const dernierExo = guide.index === guide.exos.length - 1;
+        const faites = guide.exos.reduce((total, e) => total + e.series.filter(x => x.fait).length, 0);
+        const total = guide.exos.reduce((somme, e) => somme + e.series.length, 0);
+        const derniere = (carnet[g.id] || [])[0];
+        const media = exo.img
+            ? `<img src="images/exercices/${exo.img.includes('.') ? exo.img : `${exo.img}.webp`}" alt="${nom}" width="400" height="300">`
+            : `<span class="exo__emoji" aria-hidden="true">${exo.emoji}</span>`;
+
+        let action;
+        if (actuelle !== -1) action = `<button type="button" class="btn btn--primary" data-guide="valider">${t('✓ Série {n} terminée', { n: actuelle + 1 })}</button>`;
+        else if (!dernierExo) action = `<button type="button" class="btn btn--primary" data-guide="suivant">${t('Exercice suivant →')}</button>`;
+        else action = `<button type="button" class="btn btn--primary" data-guide="terminer">${t('🏁 Terminer la séance')}</button>`;
+
+        guideEl.innerHTML = `
+            <div class="guide__haut">
+                <button type="button" class="guide__fermer" data-guide="quitter" aria-label="${t('Quitter la séance')}">✕</button>
+                <div class="guide__titre">
+                    <strong id="guide-titre">${t(SEANCES[guide.seanceId].nom)}</strong>
+                    <span>${t('Exercice {i} sur {n}', { i: guide.index + 1, n: guide.exos.length })}</span>
+                </div>
+                <span class="guide__chrono" id="guide-chrono" aria-label="${t('Durée')}">${formatChrono(Date.now() - guide.debut)}</span>
+            </div>
+            <div class="guide__progression" aria-hidden="true"><span style="width: ${Math.round((faites / total) * 100)}%"></span></div>
+            <div class="guide__corps">
+                <div class="guide__contenu">
+                    <div class="guide__media">${media}</div>
+                    <h2 class="guide__nom">${nom}</h2>
+                    <p class="guide__cible">${t('{n} séries', { n: s.series })} × ${t(s.reps)}${exo.duree ? '' : ` ${t('rép.')}`} • ⏱ ${formatRepos(s.repos)}</p>
+                    ${derniere ? `<p class="carnet__dernier">${t('📒 Dernière fois ({date}) :', { date: new Date(derniere.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }) })} <strong dir="ltr">${resumeEntree(derniere, unite)}</strong></p>` : ''}
+                    <ol class="guide__series">${g.series.map((serie, n) => `
+                        <li class="guide__serie${serie.fait ? ' guide__serie--faite' : ''}${n === actuelle ? ' guide__serie--actuelle' : ''}">
+                            <span class="guide__num" aria-label="${t('Série {n}', { n: n + 1 })}">${serie.fait ? '✓' : n + 1}</span>
+                            <label><input type="number" inputmode="decimal" min="0" step="0.5" data-champ="kg" data-serie="${n}" value="${serie.kg}" placeholder="${exo.duree ? '—' : '0'}" aria-label="${t('Poids série {n}', { n: n + 1 })}"${exo.duree ? ' disabled' : ''}> kg</label>
+                            <label><input type="number" inputmode="numeric" min="0" step="1" data-champ="reps" data-serie="${n}" value="${serie.reps}" placeholder="${repsParDefaut(g, n, s)}" aria-label="${t(exo.duree ? 'Secondes série {n}' : 'Répétitions série {n}', { n: n + 1 })}"> ${unite}</label>
+                        </li>`).join('')}
+                    </ol>
+                    ${actuelle === -1 ? `<p class="guide__bravo">${t('Bravo, exercice terminé ! 💪')}</p>` : ''}
+                    <details class="guide__conseil"><summary>${t('💡 Conseil')}</summary><p>${t(exo.conseil)}</p></details>
+                </div>
+            </div>
+            <div class="guide__bas">
+                <button type="button" class="guide__nav" data-guide="precedent" aria-label="${t('Exercice précédent')}"${guide.index === 0 ? ' disabled' : ''}>←</button>
+                ${action}
+                <button type="button" class="guide__nav" data-guide="suivant" aria-label="${t('Exercice suivant')}"${dernierExo ? ' disabled' : ''}>→</button>
+            </div>`;
+    };
+
+    // Copie les séries faites dans le carnet (une entrée par exercice) ; renvoie le bilan
+    const enregistrerGuide = () => {
+        const date = new Date().toISOString();
+        let series = 0;
+        let volume = 0;
+        guide.exos.forEach(g => {
+            const faites = g.series.filter(x => x.fait).map(x => ({ kg: Number(x.kg) || 0, reps: Number(x.reps) || 0 }));
+            if (!faites.length) return;
+            series += faites.length;
+            if (!EXERCICES[g.id].duree) volume += faites.reduce((somme, x) => somme + x.kg * x.reps, 0);
+            carnet[g.id] = [{ date, series: faites }, ...(carnet[g.id] || [])].slice(0, MAX_ENTREES_CARNET);
+        });
+        ecrireStockage(CLE_CARNET, carnet);
+        try { localStorage.removeItem(CLE_SEANCE_EN_COURS); } catch (e) { /* stockage indisponible */ }
+        return { series, volume, minutes: Math.max(1, Math.round((Date.now() - guide.debut) / 60000)) };
+    };
+
+    const afficherBilan = bilan => {
+        clearInterval(chronoGuide);
+        guideEl.innerHTML = `
+            <div class="guide__fin">
+                <div class="guide__trophee" aria-hidden="true">🏆</div>
+                <h2 id="guide-titre">${t('Séance terminée !')}</h2>
+                <p>${t(SEANCES[guide.seanceId].nom)}</p>
+                <ul class="guide__stats">
+                    <li><strong>${bilan.minutes}</strong><span>${t('min')}</span></li>
+                    <li><strong>${bilan.series}</strong><span>${t('séries')}</span></li>
+                    <li><strong>${formatNombre(bilan.volume)}</strong><span>${t('kg soulevés')}</span></li>
+                </ul>
+                <p class="guide__sauve">${t('Tout est enregistré dans ton carnet.')}</p>
+                <button type="button" class="btn btn--primary" data-guide="fermer">${t('Fermer')}</button>
+            </div>`;
+        guide.fini = true;
+        guideEl.querySelector('[data-guide="fermer"]').focus();
+    };
+
+    const ouvrirGuide = () => {
+        guide = seanceSauvegardee() || nouveauGuide();
+        sauverGuide();
+        guideEl.hidden = false;
+        document.body.classList.add('guide-ouvert');
+        afficherGuide();
+        guideEl.querySelector('.guide__fermer').focus();
+        chronoGuide = setInterval(() => {
+            const chrono = document.getElementById('guide-chrono');
+            if (chrono) chrono.textContent = formatChrono(Date.now() - guide.debut);
+        }, 1000);
+        garderEcranAllume();
+    };
+
+    const fermerGuide = () => {
+        clearInterval(chronoGuide);
+        verrouEcran?.release().catch(() => {});
+        verrouEcran = null;
+        guide = null;
+        guideEl.hidden = true;
+        guideEl.innerHTML = '';
+        document.body.classList.remove('guide-ouvert');
+        afficherSeance();
+    };
+
+    // Le verrou « écran allumé » est perdu quand on quitte l'application : on le reprend au retour
+    document.addEventListener('visibilitychange', () => {
+        if (guide && !guide.fini && document.visibilityState === 'visible') garderEcranAllume();
+    });
+
+    guideEl.addEventListener('input', e => {
+        const champ = e.target.closest('[data-champ]');
+        if (!champ || !guide) return;
+        guide.exos[guide.index].series[Number(champ.dataset.serie)][champ.dataset.champ] = champ.value;
+        sauverGuide();
+    });
+
+    guideEl.addEventListener('click', e => {
+        const action = e.target.closest('[data-guide]')?.dataset.guide;
+        if (!action || !guide) return;
+
+        if (action === 'fermer') return fermerGuide();
+
+        if (action === 'quitter') {
+            const dejaFait = guide.exos.some(g => g.series.some(x => x.fait));
+            if (dejaFait && !window.confirm(t('Quitter la séance ? Les séries déjà faites seront enregistrées dans ton carnet.'))) return;
+            if (dejaFait) enregistrerGuide();
+            else try { localStorage.removeItem(CLE_SEANCE_EN_COURS); } catch (erreur) { /* stockage indisponible */ }
+            return fermerGuide();
+        }
+
+        if (action === 'precedent' && guide.index > 0) guide.index--;
+        if (action === 'suivant' && guide.index < guide.exos.length - 1) guide.index++;
+
+        if (action === 'valider') {
+            const g = guide.exos[guide.index];
+            const n = g.series.findIndex(x => !x.fait);
+            if (n === -1) return;
+            const exo = EXERCICES[g.id];
+            const s = schema(exo, g.role, g.rang);
+            const serie = g.series[n];
+            serie.kg = Number(serie.kg) || 0;
+            serie.reps = Number(serie.reps) || repsParDefaut(g, n, s);
+            serie.fait = true;
+            // Série suivante : on reprend le même poids si rien n'a été saisi
+            if (g.series[n + 1] && !g.series[n + 1].kg && serie.kg) g.series[n + 1].kg = serie.kg;
+            const derniereSerieDeLaSeance = guide.index === guide.exos.length - 1 && n === g.series.length - 1;
+            if (!derniereSerieDeLaSeance) minuteur.lancer(s.repos, t(exo.nom));
+        }
+
+        if (action === 'terminer') return afficherBilan(enregistrerGuide());
+
+        sauverGuide();
+        afficherGuide();
+        if (action === 'precedent' || action === 'suivant') guideEl.querySelector('.guide__corps').scrollTop = 0;
     });
 
     afficherProgramme();
