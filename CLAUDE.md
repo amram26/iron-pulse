@@ -14,6 +14,14 @@ Site vitrine dédié à la musculation et à la performance. HTML/CSS/JS pur, sa
 - Ajouter un texte = l'ajouter en français dans le code **et** dans `en.js` / `he.js` (même clé, mêmes `{variables}` et balises). La recherche d'aliments cherche aussi dans les noms traduits (lettres hébraïques acceptées).
 - Sélecteur « FR · EN · עב » dans l'en-tête de chaque page ; changer de langue recharge la page avec `?lang=`.
 
+## Application installable et hors ligne (PWA)
+
+- `public/manifest.webmanifest` (nom, couleurs, raccourcis Programmes / Calculateur / Aliments) + icônes dans `public/icons/` (éclair dégradé sur fond noir : 192, 512, `maskable`, `apple-touch-icon` 180, `favicon.svg`, `favicon-32.png`). Aperçu de partage (Open Graph) : `public/images/og-image.jpg` (1200×630), balises `og:*` dans le `<head>` des deux pages.
+- `public/sw.js` : pages en « réseau d'abord » (copie en cache si pas de réseau, `/programme.html?…` retrouve `/programme`), CSS/JS/traductions en « cache puis mise à jour », photos et polices en « cache d'abord ». **Incrémenter `VERSION` dans `sw.js` à chaque modification de ce fichier** (les anciens caches sont supprimés).
+- Au premier passage, `prechargerPhotos()` (`script.js`) met en réserve, en arrière-plan après 3 s, toutes les photos d'exercices (page programme) et d'aliments/nutrition (accueil) — sauf en mode économie de données. Tout nouveau fichier essentiel au fonctionnement doit être ajouté à `FICHIERS_BASE` dans `sw.js`.
+- Bouton « 📱 Installer l'application » dans le footer (affiché seulement quand le navigateur le propose) ; sur iPhone, une phrase explique « Partager → Sur l'écran d'accueil ».
+- Le service worker ne marche qu'en http(s) : en ouvrant `index.html` directement depuis le disque, le site fonctionne mais sans hors ligne. Test hors ligne vérifié le 26/10/2026 avec un serveur local imitant Cloudflare (pages, styles, traductions, 45 photos d'exercices et 27 d'aliments disponibles sans réseau).
+
 ## Lancer le site
 
 Aucune installation requise : ouvrir `public/index.html` dans un navigateur, ou utiliser l'extension VS Code **Live Server** (clic droit sur `public/index.html` → « Open with Live Server ») pour le rechargement automatique.
@@ -124,4 +132,4 @@ Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIF
 
 1. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
 2. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
-3. Améliorations possibles : favicon, balises Open Graph pour le partage.
+3. Idées proposées au propriétaire : mode « séance en cours » (exercice par exercice, séries à cocher, minuteur automatique) et page « Mes progrès » (graphiques à partir du carnet).

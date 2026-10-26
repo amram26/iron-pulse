@@ -2,6 +2,55 @@
    IRON PULSE — Interactions
    ========================================================== */
 
+/* ---------- Application installable et hors ligne ---------- */
+// Le service worker (sw.js) ne fonctionne qu'en http(s), pas en ouvrant le fichier en local
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => { /* le site reste utilisable sans */ });
+    });
+}
+
+// Met en réserve des photos pour le hors ligne, sans ralentir la page ni consommer en mode économie de données
+function prechargerPhotos(urls) {
+    if (!('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return;
+    if (navigator.connection?.saveData) return;
+    navigator.serviceWorker.ready.then(inscription => {
+        setTimeout(() => inscription.active?.postMessage({ type: 'precharger', urls: [...new Set(urls)] }), 3000);
+    });
+}
+
+// Android / Chrome : on garde l'invitation du navigateur pour l'afficher via notre bouton
+let invitationInstallation = null;
+window.addEventListener('beforeinstallprompt', evenement => {
+    evenement.preventDefault();
+    invitationInstallation = evenement;
+    const bouton = document.getElementById('install-btn');
+    if (bouton) bouton.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+    invitationInstallation = null;
+    const bouton = document.getElementById('install-btn');
+    if (bouton) bouton.hidden = true;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    /* ---------- Bouton « Installer l'application » ---------- */
+    const boutonInstaller = document.getElementById('install-btn');
+    boutonInstaller?.addEventListener('click', async () => {
+        if (!invitationInstallation) return;
+        invitationInstallation.prompt();
+        await invitationInstallation.userChoice;
+        invitationInstallation = null;
+        boutonInstaller.hidden = true;
+    });
+
+    // iPhone : pas d'invitation automatique, on explique comment ajouter l'icône
+    const estIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const dejaInstallee = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (estIOS && !dejaInstallee) document.getElementById('install-ios')?.removeAttribute('hidden');
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.getElementById('header');
     const burger = document.getElementById('burger');
@@ -138,7 +187,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (champAliment && typeof ALIMENTS !== 'undefined') initRechercheAliments(champAliment);
 
     /* ---------- Page programme + minuteur de repos ---------- */
-    if (document.getElementById('programme') && typeof PROGRAMMES !== 'undefined') initProgramme();
+    if (document.getElementById('programme') && typeof PROGRAMMES !== 'undefined') {
+        initProgramme();
+        prechargerPhotos(Object.values(EXERCICES).filter(exo => exo.img)
+            .map(exo => `/images/exercices/${exo.img.includes('.') ? exo.img : `${exo.img}.webp`}`));
+    }
+
+    /* ---------- Accueil : photos des aliments et de la nutrition pour le hors ligne ---------- */
+    if (typeof ALIMENTS !== 'undefined') {
+        prechargerPhotos([
+            ...ALIMENTS.filter(aliment => aliment.img).map(aliment => `/images/aliments/${aliment.img}.webp`),
+            ...[...document.querySelectorAll('img[src^="images/"]')].map(image => `/${image.getAttribute('src')}`)
+        ]);
+    }
 
     /* ---------- Calculateur de calories et macros ---------- */
     const calcForm = document.getElementById('calc-form');

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <defs>
+        <linearGradient id="eclair" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ff2d55"/>
+            <stop offset="1" stop-color="#ff6b1a"/>
+        </linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="112" fill="#0a0a0b"/>
+    <path d="M287 87 L144 287 L244 287 L219 425 L368 218 L268 218 L318 87 Z" fill="url(#eclair)"/>
+</svg>

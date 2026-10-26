@@ -2974,3 +2974,17 @@ body {
 [lang="he"] :where(h1, h2, h3, h4, p, li, label, legend, button, a, span, strong, small, em, figcaption, option) {
     unicode-bidi: plaintext;
 }
+/* ---------- Installer l'application (pied de page) ---------- */
+.install-btn {
+    margin-top: 18px;
+    min-height: 48px;
+}
+
+.install-hint {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--neon-orange);
+    border-radius: 0 10px 10px 0;
+    background: rgba(255, 107, 26, 0.06);
+    font-size: 0.85rem;
+}
