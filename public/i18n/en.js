@@ -75,3 +75,42 @@ Object.assign(TRADUCTIONS.en, {
     "Sauvegarde restaurée ✓": "Backup restored ✓",
     "Ce fichier n'est pas une sauvegarde Iron Pulse valide.": "This file isn't a valid Iron Pulse backup."
 });
+
+// Sauvegarde en ligne
+Object.assign(TRADUCTIONS.en, {
+    "Sauvegarde": "Backup",
+    "Ne perds jamais ton carnet": "Never lose your log",
+    "Sauvegarde par fichier": "Backup to a file",
+    "Ton carnet est enregistré sur cet appareil. Tu peux aussi en garder une copie dans un fichier.": "Your log is stored on this device. You can also keep a copy in a file.",
+    "🔑 Nouveau téléphone ? Retrouve ton carnet avec ton code": "🔑 New phone? Get your log back with your code",
+    "La sauvegarde en ligne fonctionne sur le site en ligne (pas en ouvrant le fichier sur l'ordinateur).": "Online backup works on the live website (not when opening the file on a computer).",
+    "☁️ Protège ton carnet : une copie chiffrée part automatiquement en ligne après chaque séance. Avec ton code personnel, tu la retrouves sur n'importe quel téléphone.": "☁️ Protect your log: an encrypted copy is sent online automatically after each workout. With your personal code, you can get it back on any phone.",
+    "☁️ Activer la sauvegarde en ligne": "☁️ Turn on online backup",
+    "🔑 J'ai déjà un code": "🔑 I already have a code",
+    "Ton code personnel": "Your personal code",
+    "Retrouver mon carnet": "Get my log back",
+    "⚠️ La sauvegarde en ligne n'est pas encore configurée sur le serveur.": "⚠️ Online backup isn't set up on the server yet.",
+    "⏳ En attente de connexion : la copie partira dès que le réseau revient.": "⏳ Waiting for a connection: the copy will be sent as soon as you're back online.",
+    "✓ Sauvegardé en ligne le {date}": "✓ Backed up online on {date}",
+    "⏳ Première copie en cours…": "⏳ First backup in progress…",
+    "Masquer": "Hide",
+    "Afficher": "Show",
+    "Copier": "Copy",
+    "⚠️ Garde ce code en lieu sûr (photo, notes…) : sans lui, impossible de récupérer ton carnet sur un autre téléphone. Personne ne peut le retrouver à ta place.": "⚠️ Keep this code somewhere safe (photo, notes…): without it, you can't get your log back on another phone. Nobody can recover it for you.",
+    "↻ Sauvegarder maintenant": "↻ Back up now",
+    "Désactiver": "Turn off",
+    "Sauvegarde en ligne activée. Note bien ton code !": "Online backup is on. Make sure you write down your code!",
+    "Code copié ✓": "Code copied ✓",
+    "Copie impossible : recopie le code affiché.": "Couldn't copy: write down the code shown.",
+    "⏳ Sauvegarde en cours…": "⏳ Backing up…",
+    "Sauvegarde en ligne à jour ✓": "Online backup is up to date ✓",
+    "Désactiver la sauvegarde en ligne ? La copie en ligne sera supprimée (ton carnet reste sur ce téléphone).": "Turn off online backup? The online copy will be deleted (your log stays on this phone).",
+    "Sauvegarde en ligne désactivée.": "Online backup turned off.",
+    "Ce code n'est pas valide : il contient 12 lettres et chiffres (ex. K7QM-3XTP-9WHN).": "This code isn't valid: it has 12 letters and numbers (e.g. K7QM-3XTP-9WHN).",
+    "⏳ Recherche de ta sauvegarde…": "⏳ Looking for your backup…",
+    "Une sauvegarde du {date} a été trouvée. Remplacer le carnet de ce téléphone par cette sauvegarde ?": "A backup from {date} was found. Replace the log on this phone with this backup?",
+    "Carnet récupéré ✓": "Log restored ✓",
+    "Aucune sauvegarde trouvée pour ce code. Vérifie qu'il est bien recopié.": "No backup found for this code. Check that you typed it correctly.",
+    "Pas de connexion : réessaie quand tu as du réseau.": "No connection: try again when you're online."
+});
+Object.assign(TRADUCTIONS.en, { "{n} exercice": "{n} exercise", "{n} exercices": "{n} exercises", "{n} série": "{n} set", "{n} exercice noté": "{n} exercise logged" });

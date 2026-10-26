@@ -86,6 +86,7 @@
                     <h2 class="vide__titre">Aucune séance enregistrée pour l'instant</h2>
                     <p>Note tes séries avec « 📝 Noter » ou fais une séance guidée : tes courbes et tes records apparaîtront ici.</p>
                     <a href="index.html#programmes" class="btn btn--primary">Choisir un programme</a>
+                    <a href="#sauvegarde" class="vide__lien">🔑 Nouveau téléphone ? Retrouve ton carnet avec ton code</a>
                 </div>
 
                 <div id="progres-contenu" hidden>
@@ -134,20 +135,25 @@
                     </article>
                 </div>
 
-                <!-- Sauvegarde : les données ne sont que sur cet appareil -->
-                <article class="bloc bloc--donnees">
+                <!-- Sauvegarde : en ligne (chiffrée, automatique) ou par fichier -->
+                <article class="bloc bloc--donnees" id="sauvegarde">
                     <header class="bloc__tete">
-                        <h2 class="bloc__titre">Tes données</h2>
+                        <h2 class="bloc__titre">Sauvegarde</h2>
+                        <p class="bloc__sous">Ne perds jamais ton carnet</p>
                     </header>
-                    <p class="bloc__texte">Ton carnet est enregistré uniquement sur cet appareil. Fais une sauvegarde pour ne rien perdre si tu changes de téléphone.</p>
-                    <div class="donnees__actions">
-                        <button type="button" class="btn btn--ghost" id="exporter">⬇ Sauvegarder mes données</button>
-                        <label class="btn btn--ghost donnees__importer">
-                            ⬆ Restaurer une sauvegarde
-                            <input type="file" id="importer" accept="application/json,.json">
-                        </label>
-                    </div>
+                    <div class="cloud" id="cloud"></div>
                     <p class="donnees__message" id="donnees-message" role="status" aria-live="polite"></p>
+                    <details class="detail">
+                        <summary>Sauvegarde par fichier</summary>
+                        <p class="bloc__texte">Ton carnet est enregistré sur cet appareil. Tu peux aussi en garder une copie dans un fichier.</p>
+                        <div class="donnees__actions">
+                            <button type="button" class="btn btn--ghost" id="exporter">⬇ Sauvegarder mes données</button>
+                            <label class="btn btn--ghost donnees__importer">
+                                ⬆ Restaurer une sauvegarde
+                                <input type="file" id="importer" accept="application/json,.json">
+                            </label>
+                        </div>
+                    </details>
                 </article>
             </div>
         </section>

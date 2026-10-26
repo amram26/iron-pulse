@@ -75,3 +75,42 @@ Object.assign(TRADUCTIONS.he, {
     "Sauvegarde restaurée ✓": "הגיבוי שוחזר ✓",
     "Ce fichier n'est pas une sauvegarde Iron Pulse valide.": "הקובץ הזה אינו גיבוי תקין של Iron Pulse."
 });
+
+// Sauvegarde en ligne
+Object.assign(TRADUCTIONS.he, {
+    "Sauvegarde": "גיבוי",
+    "Ne perds jamais ton carnet": "לא מאבדים את היומן לעולם",
+    "Sauvegarde par fichier": "גיבוי לקובץ",
+    "Ton carnet est enregistré sur cet appareil. Tu peux aussi en garder une copie dans un fichier.": "היומן נשמר במכשיר הזה. אפשר גם לשמור עותק בקובץ.",
+    "🔑 Nouveau téléphone ? Retrouve ton carnet avec ton code": "🔑 טלפון חדש? שחזרו את היומן עם הקוד שלכם",
+    "La sauvegarde en ligne fonctionne sur le site en ligne (pas en ouvrant le fichier sur l'ordinateur).": "הגיבוי המקוון עובד באתר החי (לא כשפותחים את הקובץ במחשב).",
+    "☁️ Protège ton carnet : une copie chiffrée part automatiquement en ligne après chaque séance. Avec ton code personnel, tu la retrouves sur n'importe quel téléphone.": "☁️ הגנו על היומן: עותק מוצפן נשלח אוטומטית לרשת אחרי כל אימון. עם הקוד האישי שלכם תוכלו לשחזר אותו בכל טלפון.",
+    "☁️ Activer la sauvegarde en ligne": "☁️ הפעלת גיבוי מקוון",
+    "🔑 J'ai déjà un code": "🔑 כבר יש לי קוד",
+    "Ton code personnel": "הקוד האישי שלכם",
+    "Retrouver mon carnet": "שחזור היומן שלי",
+    "⚠️ La sauvegarde en ligne n'est pas encore configurée sur le serveur.": "⚠️ הגיבוי המקוון עדיין לא הוגדר בשרת.",
+    "⏳ En attente de connexion : la copie partira dès que le réseau revient.": "⏳ ממתין לחיבור: העותק יישלח ברגע שהרשת תחזור.",
+    "✓ Sauvegardé en ligne le {date}": "✓ גובה ברשת ב-{date}",
+    "⏳ Première copie en cours…": "⏳ הגיבוי הראשון מתבצע…",
+    "Masquer": "הסתרה",
+    "Afficher": "הצגה",
+    "Copier": "העתקה",
+    "⚠️ Garde ce code en lieu sûr (photo, notes…) : sans lui, impossible de récupérer ton carnet sur un autre téléphone. Personne ne peut le retrouver à ta place.": "⚠️ שמרו את הקוד במקום בטוח (צילום מסך, פתקים…): בלעדיו אי אפשר לשחזר את היומן בטלפון אחר. אף אחד לא יכול לשחזר אותו בשבילכם.",
+    "↻ Sauvegarder maintenant": "↻ גיבוי עכשיו",
+    "Désactiver": "כיבוי",
+    "Sauvegarde en ligne activée. Note bien ton code !": "הגיבוי המקוון הופעל. אל תשכחו לרשום את הקוד!",
+    "Code copié ✓": "הקוד הועתק ✓",
+    "Copie impossible : recopie le code affiché.": "לא ניתן להעתיק: רשמו את הקוד המוצג.",
+    "⏳ Sauvegarde en cours…": "⏳ מגבה…",
+    "Sauvegarde en ligne à jour ✓": "הגיבוי המקוון מעודכן ✓",
+    "Désactiver la sauvegarde en ligne ? La copie en ligne sera supprimée (ton carnet reste sur ce téléphone).": "לכבות את הגיבוי המקוון? העותק ברשת יימחק (היומן נשאר בטלפון הזה).",
+    "Sauvegarde en ligne désactivée.": "הגיבוי המקוון כובה.",
+    "Ce code n'est pas valide : il contient 12 lettres et chiffres (ex. K7QM-3XTP-9WHN).": "הקוד לא תקין: הוא מכיל 12 אותיות ומספרים (למשל K7QM-3XTP-9WHN).",
+    "⏳ Recherche de ta sauvegarde…": "⏳ מחפש את הגיבוי שלכם…",
+    "Une sauvegarde du {date} a été trouvée. Remplacer le carnet de ce téléphone par cette sauvegarde ?": "נמצא גיבוי מ-{date}. להחליף את היומן בטלפון הזה בגיבוי?",
+    "Carnet récupéré ✓": "היומן שוחזר ✓",
+    "Aucune sauvegarde trouvée pour ce code. Vérifie qu'il est bien recopié.": "לא נמצא גיבוי לקוד הזה. בדקו שהוא הוקלד נכון.",
+    "Pas de connexion : réessaie quand tu as du réseau.": "אין חיבור: נסו שוב כשתהיה רשת."
+});
+Object.assign(TRADUCTIONS.he, { "{n} exercice": "תרגיל {n}", "{n} exercices": "{n} תרגילים", "{n} série": "סט {n}", "{n} exercice noté": "תרגיל {n} נרשם" });

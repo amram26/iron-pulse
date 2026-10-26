@@ -57,7 +57,15 @@ Autres pages : `programme.html` (programmes) et `progres.html` (« Mes progrès 
 - `initProgres` (`script.js`) calcule tout à partir du carnet (`ironpulse-carnet`) : une séance = un jour avec au moins un exercice noté ; semaines du dimanche au samedi.
 - Tuiles : séances, cette semaine, semaines d'affilée (la semaine en cours compte dès qu'elle a une séance), kg soulevés. Calendrier d'activité sur 12 semaines (case orange = séance, aujourd'hui entouré).
 - Progression par exercice : liste des exercices notés (le plus récent d'abord), tuiles Record / Depuis le début / Séances, courbe SVG maison `tracerCourbe` (une seule couleur `--neon-orange`, ligne 2 px, points cerclés, voile 10 %, grille fine, info-bulle au survol / au doigt / aux flèches du clavier) et **tableau détaillé** (version texte de la courbe). Valeur suivie : meilleur poids, sinon meilleures répétitions (exercices au poids du corps) ou meilleur temps (gainage).
-- Sauvegarde / restauration en fichier JSON (`initSauvegarde`, clés `CLES_SAUVEGARDE`) : le carnet n'existe que sur l'appareil.
+- Sauvegarde / restauration en fichier JSON (`initSauvegarde`, clés `CLES_SAUVEGARDE`), repliée sous « Sauvegarde par fichier ».
+
+## Sauvegarde en ligne (chiffrée)
+
+- Serveur : `functions/api/sauvegarde.js` (Cloudflare **Pages Functions**, dossier `functions/` à la racine du dépôt, route `/api/sauvegarde`). Stockage **Workers KV** relié au projet `iron-pulse-site` sous le nom de variable **`SAUVEGARDES`** (espace de noms `iron-pulse-sauvegardes`, à créer dans le tableau de bord). Sans cette liaison, l'API répond 503 et la page affiche « pas encore configurée ».
+- Client : objet `SauvegardeEnLigne` + `initSauvegardeEnLigne()` (bloc `#cloud` de `progres.html`). Code personnel de 12 caractères (alphabet sans I/L/O/0/1, tirage sans biais) stocké dans `ironpulse-cloud-code` ; identifiant serveur = SHA-256 de `iron-pulse:id:<code>` ; données = mêmes clés que la sauvegarde fichier, **chiffrées AES-GCM** avec une clé PBKDF2 (150 000 itérations) tirée du code. Le serveur ne voit ni le code ni le contenu. Ne jamais changer ces paramètres sans migration (les anciennes sauvegardes deviendraient illisibles).
+- Envoi automatique 3 s après chaque modification du carnet (`ecrireStockage` → `SauvegardeEnLigne.planifier()`), au chargement de chaque page et au retour du réseau (`online`) ; rien n'est envoyé si le contenu n'a pas changé (empreinte dans `ironpulse-cloud-etat`). Le service worker ne met jamais `/api/` en cache.
+- Limites KV gratuites : 1 000 écritures / jour pour tout le site — largement suffisant pour un usage personnel ; à surveiller si le site a beaucoup d'utilisateurs (passer à D1 ou à l'offre payante).
+- Testé le 26/10/2026 avec un faux stockage : chiffrement vérifié (le serveur ne peut lire ni le carnet ni le code), envoi automatique, hors ligne puis retour du réseau, récupération sur un « nouveau téléphone », mauvais code, désactivation (copie supprimée).
 - Lien « 📈 Voir mes progrès » à la fin d'une séance guidée.
 
 Le menu de navigation contient déjà les liens vers les sections manquantes.
@@ -143,4 +151,4 @@ Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIF
 
 1. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
 2. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
-3. Idée possible : synchroniser le carnet entre appareils (nécessiterait des comptes et un serveur ; aujourd'hui, sauvegarde/restauration par fichier).
+3. Idée possible : synchronisation en continu entre plusieurs appareils utilisés en même temps (aujourd'hui : sauvegarde en ligne automatique + récupération par code sur un nouveau téléphone).

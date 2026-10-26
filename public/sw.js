@@ -11,7 +11,7 @@
    existantes sont remplacées, pour éviter de tout retélécharger.
    ========================================================== */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const VERSION_PHOTOS = 'v1';
 const CACHE_BASE = `iron-pulse-base-${VERSION}`;
 const CACHE_PHOTOS = `iron-pulse-photos-${VERSION_PHOTOS}`;
@@ -115,6 +115,8 @@ self.addEventListener('fetch', evenement => {
     const requete = evenement.request;
     if (requete.method !== 'GET') return;
     const url = new URL(requete.url);
+    // La sauvegarde en ligne doit toujours parler au serveur, jamais à une copie en cache
+    if (url.pathname.startsWith('/api/')) return;
 
     if (requete.mode === 'navigate') {
         evenement.respondWith(reseauDabord(requete));

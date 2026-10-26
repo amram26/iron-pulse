@@ -195,6 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ---------- Page « Mes progrès » ---------- */
     if (document.getElementById('progres') && typeof EXERCICES !== 'undefined') initProgres();
+    initSauvegardeEnLigne();
+
+    /* ---------- Sauvegarde en ligne : copie en attente envoyée dès que possible ---------- */
+    if (SauvegardeEnLigne.lireCode()) {
+        SauvegardeEnLigne.planifier();
+        window.addEventListener('online', () => SauvegardeEnLigne.planifier());
+    }
 
     /* ---------- Accueil : photos des aliments et de la nutrition pour le hors ligne ---------- */
     if (typeof ALIMENTS !== 'undefined') {
@@ -597,6 +604,8 @@ function initProgramme() {
     };
     const ecrireStockage = (cle, valeur) => {
         try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* stockage indisponible */ }
+        // Le carnet a changé : copie en ligne automatique (si elle est activée)
+        if (cle === CLE_CARNET) SauvegardeEnLigne.planifier();
     };
 
     let jours = Number(params.get('jours'));
@@ -1257,7 +1266,7 @@ function initProgres() {
             const cle = cleJour(date);
             const nbExos = exosParJour[cle]?.size || 0;
             const futur = date > aujourdhui;
-            const texte = `${formatDateLongue(date)} — ${nbExos ? t('{n} exercices notés', { n: nbExos }) : t('Repos')}`;
+            const texte = `${formatDateLongue(date)} — ${nbExos ? t(nbExos > 1 ? '{n} exercices notés' : '{n} exercice noté', { n: nbExos }) : t('Repos')}`;
             const classes = ['activite__case', nbExos ? 'activite__case--faite' : '', futur ? 'activite__case--futur' : '', cle === cleJour(aujourdhui) ? 'activite__case--aujourdhui' : ''].filter(Boolean).join(' ');
             cases.push(`<span class="${classes}" title="${texte}" ${futur ? 'aria-hidden="true"' : `role="img" aria-label="${texte}"`}></span>`);
         }
@@ -1330,7 +1339,11 @@ function initProgres() {
             <li class="historique__ligne">
                 <div class="historique__date">${formatDateLongue(dateDeJour(jour))}</div>
                 <div class="historique__infos">
-                    <strong>${t('{n} exercices • {s} séries', { n: noms.length, s: nbSeries })}${volume ? ` • ${formatCompact(volume)} kg` : ''}</strong>
+                    <strong>${[
+                        t(noms.length > 1 ? '{n} exercices' : '{n} exercice', { n: noms.length }),
+                        t(nbSeries > 1 ? '{n} séries' : '{n} série', { n: nbSeries }),
+                        volume ? `${formatCompact(volume)} kg` : ''
+                    ].filter(Boolean).join(' • ')}</strong>
                     <span>${noms.join(', ')}</span>
                 </div>
             </li>`;
@@ -1372,12 +1385,309 @@ function initSauvegarde() {
             CLES_SAUVEGARDE.forEach(cle => {
                 if (typeof contenu.donnees[cle] === 'string') localStorage.setItem(cle, contenu.donnees[cle]);
             });
+            SauvegardeEnLigne.planifier();
             message.textContent = t('Sauvegarde restaurée ✓');
             setTimeout(() => location.reload(), 800);
         } catch (erreur) {
             message.textContent = t("Ce fichier n'est pas une sauvegarde Iron Pulse valide.");
         }
     });
+}
+
+/* ==========================================================
+   SAUVEGARDE EN LIGNE — chiffrée sur le téléphone
+   Un code personnel (12 caractères) sert à la fois d'identifiant
+   (empreinte SHA-256 envoyée au serveur) et de clé de chiffrement
+   (AES-GCM, clé dérivée par PBKDF2). Le serveur (functions/api/
+   sauvegarde.js) ne reçoit qu'un bloc illisible. Copie automatique
+   après chaque modification du carnet, ou au retour du réseau.
+   ========================================================== */
+
+const CLE_CODE_EN_LIGNE = 'ironpulse-cloud-code';
+const CLE_ETAT_EN_LIGNE = 'ironpulse-cloud-etat';
+const URL_SAUVEGARDE = '/api/sauvegarde';
+// Sans I, L, O, 0 ni 1 : impossible de confondre en recopiant le code
+const ALPHABET_CODE = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const EVENEMENT_SAUVEGARDE = 'ironpulse:sauvegarde';
+
+const versBase64 = octets => {
+    let binaire = '';
+    new Uint8Array(octets).forEach(o => { binaire += String.fromCharCode(o); });
+    return btoa(binaire);
+};
+const depuisBase64 = texte => Uint8Array.from(atob(texte), c => c.charCodeAt(0));
+const versHex = octets => [...new Uint8Array(octets)].map(o => o.toString(16).padStart(2, '0')).join('');
+const empreinte = async texte => versHex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texte)));
+
+const SauvegardeEnLigne = {
+    disponible: () => Boolean(window.crypto?.subtle) && location.protocol.startsWith('http'),
+
+    lireCode() {
+        try { return localStorage.getItem(CLE_CODE_EN_LIGNE); } catch (e) { return null; }
+    },
+
+    lireEtat() {
+        try { return JSON.parse(localStorage.getItem(CLE_ETAT_EN_LIGNE)) || {}; } catch (e) { return {}; }
+    },
+
+    ecrireEtat(etat) {
+        try { localStorage.setItem(CLE_ETAT_EN_LIGNE, JSON.stringify(etat)); } catch (e) { /* stockage indisponible */ }
+        document.dispatchEvent(new CustomEvent(EVENEMENT_SAUVEGARDE, { detail: etat }));
+    },
+
+    // 12 caractères tirés sans biais (on rejette les valeurs qui fausseraient le tirage) : « K7QM-3XTP-9WHN »
+    genererCode() {
+        const limite = 256 - (256 % ALPHABET_CODE.length);
+        let code = '';
+        while (code.length < 12) {
+            crypto.getRandomValues(new Uint8Array(24)).forEach(v => {
+                if (v < limite && code.length < 12) code += ALPHABET_CODE[v % ALPHABET_CODE.length];
+            });
+        }
+        return code.match(/.{4}/g).join('-');
+    },
+
+    // Accepte minuscules, espaces et tirets ; renvoie null si le code n'est pas valide
+    normaliserCode(saisie) {
+        const brut = String(saisie).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (brut.length !== 12 || [...brut].some(c => !ALPHABET_CODE.includes(c))) return null;
+        return brut.match(/.{4}/g).join('-');
+    },
+
+    async cles(code) {
+        const encodeur = new TextEncoder();
+        const id = await empreinte(`iron-pulse:id:${code}`);
+        const base = await crypto.subtle.importKey('raw', encodeur.encode(code), 'PBKDF2', false, ['deriveKey']);
+        const cle = await crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: encodeur.encode('iron-pulse:sel:v1'), iterations: 150000, hash: 'SHA-256' },
+            base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        return { id, cle };
+    },
+
+    // Mêmes données que la sauvegarde par fichier
+    contenu() {
+        const donnees = {};
+        CLES_SAUVEGARDE.forEach(cle => {
+            try {
+                const valeur = localStorage.getItem(cle);
+                if (valeur !== null) donnees[cle] = valeur;
+            } catch (e) { /* stockage indisponible */ }
+        });
+        return JSON.stringify(donnees);
+    },
+
+    async envoyer({ forcer = false } = {}) {
+        const code = this.lireCode();
+        if (!code || !this.disponible()) return null;
+        const texte = this.contenu();
+        const signature = await empreinte(texte);
+        const etat = this.lireEtat();
+        if (!forcer && etat.empreinte === signature && !etat.enAttente) return etat;
+
+        try {
+            const { id, cle } = await this.cles(code);
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const chiffre = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cle, new TextEncoder().encode(texte));
+            const reponse = await fetch(`${URL_SAUVEGARDE}?id=${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ iv: versBase64(iv), donnees: versBase64(chiffre) })
+            });
+            if (!reponse.ok) throw new Error(reponse.status === 503 ? 'non-configure' : `http-${reponse.status}`);
+            const resultat = await reponse.json();
+            const nouvelEtat = { date: resultat.date, empreinte: signature, enAttente: false };
+            this.ecrireEtat(nouvelEtat);
+            return nouvelEtat;
+        } catch (erreur) {
+            // Pas de réseau ou serveur indisponible : on réessaiera (retour du réseau, prochaine visite)
+            const nouvelEtat = { ...etat, enAttente: true, erreur: erreur.message === 'non-configure' ? 'non-configure' : 'reseau' };
+            this.ecrireEtat(nouvelEtat);
+            throw erreur;
+        }
+    },
+
+    // Regroupe les modifications rapprochées (plusieurs séries notées d'affilée) en un seul envoi
+    planifier() {
+        if (!this.lireCode()) return;
+        clearTimeout(this._minuterie);
+        this._minuterie = setTimeout(() => this.envoyer().catch(() => {}), 3000);
+    },
+
+    async recuperer(code) {
+        const { id, cle } = await this.cles(code);
+        const reponse = await fetch(`${URL_SAUVEGARDE}?id=${id}`, { cache: 'no-store' });
+        if (reponse.status === 404) throw new Error('introuvable');
+        if (!reponse.ok) throw new Error(reponse.status === 503 ? 'non-configure' : 'reseau');
+        const sauvegarde = await reponse.json();
+        try {
+            const clair = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: depuisBase64(sauvegarde.iv) }, cle, depuisBase64(sauvegarde.donnees));
+            return { donnees: JSON.parse(new TextDecoder().decode(clair)), date: sauvegarde.date };
+        } catch (e) {
+            throw new Error('illisible');
+        }
+    },
+
+    async supprimer() {
+        const code = this.lireCode();
+        if (!code) return;
+        const { id } = await this.cles(code);
+        await fetch(`${URL_SAUVEGARDE}?id=${id}`, { method: 'DELETE' });
+    },
+
+    oublier() {
+        try {
+            localStorage.removeItem(CLE_CODE_EN_LIGNE);
+            localStorage.removeItem(CLE_ETAT_EN_LIGNE);
+        } catch (e) { /* stockage indisponible */ }
+        document.dispatchEvent(new CustomEvent(EVENEMENT_SAUVEGARDE, { detail: {} }));
+    }
+};
+
+// Bloc « Sauvegarde en ligne » de la page Progrès
+function initSauvegardeEnLigne() {
+    const bloc = document.getElementById('cloud');
+    if (!bloc) return;
+    const message = document.getElementById('donnees-message');
+    let codeVisible = false;
+
+    const formatDateHeure = iso => new Date(iso).toLocaleString(LOCALE, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+    const afficher = () => {
+        const code = SauvegardeEnLigne.lireCode();
+        if (!SauvegardeEnLigne.disponible()) {
+            bloc.innerHTML = `<p class="bloc__texte">${t('La sauvegarde en ligne fonctionne sur le site en ligne (pas en ouvrant le fichier sur l\'ordinateur).')}</p>`;
+            return;
+        }
+
+        if (!code) {
+            bloc.innerHTML = `
+                <p class="bloc__texte">${t('☁️ Protège ton carnet : une copie chiffrée part automatiquement en ligne après chaque séance. Avec ton code personnel, tu la retrouves sur n\'importe quel téléphone.')}</p>
+                <div class="donnees__actions">
+                    <button type="button" class="btn btn--primary" data-cloud="activer">${t('☁️ Activer la sauvegarde en ligne')}</button>
+                    <button type="button" class="btn btn--ghost" data-cloud="retrouver">${t('🔑 J\'ai déjà un code')}</button>
+                </div>
+                <form class="cloud__retrouver" id="cloud-retrouver" hidden>
+                    <label class="field__label" for="cloud-saisie">${t('Ton code personnel')}</label>
+                    <input class="cloud__saisie" id="cloud-saisie" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16" placeholder="XXXX-XXXX-XXXX" dir="ltr">
+                    <button type="submit" class="btn btn--primary">${t('Retrouver mon carnet')}</button>
+                </form>`;
+            return;
+        }
+
+        const etat = SauvegardeEnLigne.lireEtat();
+        let statut;
+        if (etat.erreur === 'non-configure' && etat.enAttente) statut = `<p class="cloud__statut cloud__statut--alerte">${t('⚠️ La sauvegarde en ligne n\'est pas encore configurée sur le serveur.')}</p>`;
+        else if (etat.enAttente) statut = `<p class="cloud__statut cloud__statut--attente">${t('⏳ En attente de connexion : la copie partira dès que le réseau revient.')}</p>`;
+        else if (etat.date) statut = `<p class="cloud__statut cloud__statut--ok">${t('✓ Sauvegardé en ligne le {date}', { date: formatDateHeure(etat.date) })}</p>`;
+        else statut = `<p class="cloud__statut cloud__statut--attente">${t('⏳ Première copie en cours…')}</p>`;
+
+        bloc.innerHTML = `
+            ${statut}
+            <div class="cloud__code">
+                <span class="cloud__code-libelle">${t('Ton code personnel')}</span>
+                <strong class="cloud__code-valeur" dir="ltr">${codeVisible ? code : '••••-••••-••••'}</strong>
+                <div class="cloud__code-actions">
+                    <button type="button" class="chip-btn" data-cloud="montrer">${t(codeVisible ? 'Masquer' : 'Afficher')}</button>
+                    <button type="button" class="chip-btn" data-cloud="copier">${t('Copier')}</button>
+                </div>
+            </div>
+            <p class="cloud__alerte">${t('⚠️ Garde ce code en lieu sûr (photo, notes…) : sans lui, impossible de récupérer ton carnet sur un autre téléphone. Personne ne peut le retrouver à ta place.')}</p>
+            <div class="donnees__actions">
+                <button type="button" class="btn btn--ghost" data-cloud="maintenant">${t('↻ Sauvegarder maintenant')}</button>
+                <button type="button" class="btn btn--ghost cloud__desactiver" data-cloud="desactiver">${t('Désactiver')}</button>
+            </div>`;
+    };
+
+    const ecrireMessage = texte => { message.textContent = texte; };
+
+    bloc.addEventListener('click', async e => {
+        const action = e.target.closest('[data-cloud]')?.dataset.cloud;
+        if (!action) return;
+
+        if (action === 'activer') {
+            try { localStorage.setItem(CLE_CODE_EN_LIGNE, SauvegardeEnLigne.genererCode()); } catch (erreur) { return; }
+            codeVisible = true;
+            SauvegardeEnLigne.ecrireEtat({});
+            ecrireMessage(t('Sauvegarde en ligne activée. Note bien ton code !'));
+            SauvegardeEnLigne.envoyer({ forcer: true }).catch(() => {});
+        }
+
+        if (action === 'retrouver') {
+            const formulaire = document.getElementById('cloud-retrouver');
+            formulaire.hidden = !formulaire.hidden;
+            if (!formulaire.hidden) document.getElementById('cloud-saisie').focus();
+            return;
+        }
+
+        if (action === 'montrer') codeVisible = !codeVisible;
+
+        if (action === 'copier') {
+            try {
+                await navigator.clipboard.writeText(SauvegardeEnLigne.lireCode());
+                ecrireMessage(t('Code copié ✓'));
+            } catch (erreur) {
+                codeVisible = true;
+                ecrireMessage(t('Copie impossible : recopie le code affiché.'));
+            }
+        }
+
+        if (action === 'maintenant') {
+            ecrireMessage(t('⏳ Sauvegarde en cours…'));
+            try {
+                await SauvegardeEnLigne.envoyer({ forcer: true });
+                ecrireMessage(t('Sauvegarde en ligne à jour ✓'));
+            } catch (erreur) {
+                ecrireMessage(t(erreur.message === 'non-configure' ? '⚠️ La sauvegarde en ligne n\'est pas encore configurée sur le serveur.' : '⏳ En attente de connexion : la copie partira dès que le réseau revient.'));
+            }
+        }
+
+        if (action === 'desactiver') {
+            if (!window.confirm(t('Désactiver la sauvegarde en ligne ? La copie en ligne sera supprimée (ton carnet reste sur ce téléphone).'))) return;
+            try { await SauvegardeEnLigne.supprimer(); } catch (erreur) { /* hors ligne : la copie expirera côté serveur si elle n'est plus utilisée */ }
+            SauvegardeEnLigne.oublier();
+            codeVisible = false;
+            ecrireMessage(t('Sauvegarde en ligne désactivée.'));
+        }
+
+        afficher();
+    });
+
+    // Retrouver son carnet sur un nouveau téléphone
+    bloc.addEventListener('submit', async e => {
+        e.preventDefault();
+        const code = SauvegardeEnLigne.normaliserCode(document.getElementById('cloud-saisie').value);
+        if (!code) {
+            ecrireMessage(t('Ce code n\'est pas valide : il contient 12 lettres et chiffres (ex. K7QM-3XTP-9WHN).'));
+            return;
+        }
+        ecrireMessage(t('⏳ Recherche de ta sauvegarde…'));
+        try {
+            const { donnees, date } = await SauvegardeEnLigne.recuperer(code);
+            const carnetLocal = localStorage.getItem(CLE_CARNET);
+            const aDesDonnees = carnetLocal && carnetLocal !== '{}';
+            if (aDesDonnees && !window.confirm(t('Une sauvegarde du {date} a été trouvée. Remplacer le carnet de ce téléphone par cette sauvegarde ?', { date: formatDateHeure(date) }))) {
+                ecrireMessage('');
+                return;
+            }
+            CLES_SAUVEGARDE.forEach(cle => {
+                if (typeof donnees[cle] === 'string') localStorage.setItem(cle, donnees[cle]);
+            });
+            localStorage.setItem(CLE_CODE_EN_LIGNE, code);
+            SauvegardeEnLigne.ecrireEtat({ date, empreinte: await empreinte(SauvegardeEnLigne.contenu()), enAttente: false });
+            ecrireMessage(t('Carnet récupéré ✓'));
+            setTimeout(() => location.reload(), 800);
+        } catch (erreur) {
+            const messages = {
+                introuvable: 'Aucune sauvegarde trouvée pour ce code. Vérifie qu\'il est bien recopié.',
+                illisible: 'Aucune sauvegarde trouvée pour ce code. Vérifie qu\'il est bien recopié.',
+                'non-configure': '⚠️ La sauvegarde en ligne n\'est pas encore configurée sur le serveur.'
+            };
+            ecrireMessage(t(messages[erreur.message] || 'Pas de connexion : réessaie quand tu as du réseau.'));
+        }
+    });
+
+    document.addEventListener(EVENEMENT_SAUVEGARDE, afficher);
+    afficher();
 }
 
 /* ==========================================================

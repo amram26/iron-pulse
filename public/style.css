@@ -3869,3 +3869,129 @@ body.guide-ouvert:has(.timer:not([hidden])) .guide__corps {
     font-weight: 800;
     letter-spacing: 0;
 }
+
+/* ---------- Sauvegarde en ligne (page Progrès) ---------- */
+#sauvegarde {
+    scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+.vide__lien {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--neon-orange);
+}
+
+.cloud__statut {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.cloud__statut--ok {
+    background: rgba(74, 222, 128, 0.1);
+    color: #86efac;
+}
+
+.cloud__statut--attente {
+    background: rgba(255, 107, 26, 0.1);
+    color: #fdba74;
+}
+
+.cloud__statut--alerte {
+    background: rgba(255, 45, 85, 0.1);
+    color: #fda4af;
+}
+
+.cloud__code {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px dashed rgba(255, 107, 26, 0.5);
+    border-radius: 14px;
+    background: var(--bg);
+    text-align: center;
+}
+
+.cloud__code-libelle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.cloud__code-valeur {
+    font-family: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    user-select: all;
+}
+
+.cloud__code-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.cloud__alerte {
+    margin-top: 12px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.cloud__retrouver {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+}
+
+/* 16px minimum : évite le zoom automatique sur iPhone au focus */
+.cloud__saisie {
+    width: 100%;
+    height: 52px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.cloud__saisie:focus {
+    outline: none;
+    border-color: var(--neon-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.2);
+}
+
+.cloud__desactiver {
+    color: var(--text-muted);
+}
+
+#sauvegarde .detail {
+    margin-top: 16px;
+}
+
+#sauvegarde .detail .bloc__texte {
+    margin-top: 0;
+}
+
+#sauvegarde .detail .donnees__actions {
+    margin-bottom: 8px;
+}
