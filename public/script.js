@@ -193,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(exo => `/images/exercices/${exo.img.includes('.') ? exo.img : `${exo.img}.webp`}`));
     }
 
+    /* ---------- Page « Mes progrès » ---------- */
+    if (document.getElementById('progres') && typeof EXERCICES !== 'undefined') initProgres();
+
     /* ---------- Accueil : photos des aliments et de la nutrition pour le hors ligne ---------- */
     if (typeof ALIMENTS !== 'undefined') {
         prechargerPhotos([
@@ -530,6 +533,13 @@ const DUREE_REPRISE_SEANCE = 4 * 60 * 60 * 1000; // une séance commencée il y 
 
 const formatKg = kg => `${kg.toLocaleString(LOCALE)} kg`;
 
+// « 60 kg × 10 · 10 · 9 rép. » (ou « 60×10 · 62,5×8 » si le poids a changé entre les séries)
+const resumeEntree = (entree, unite) => {
+    const poids = [...new Set(entree.series.map(x => x.kg).filter(kg => kg > 0))];
+    const detail = entree.series.map(x => (poids.length > 1 && x.kg ? `${x.kg.toLocaleString(LOCALE)}×${x.reps}` : x.reps)).join(' · ');
+    return `${poids.length === 1 ? `${formatKg(poids[0])} × ` : ''}${detail} ${unite}`;
+};
+
 // Conseil de progression à partir de la dernière séance notée (double progression)
 function conseilProgression(exo, schema, entree) {
     const [min, max] = schema.reps.match(/\d+/g).map(Number);
@@ -632,13 +642,6 @@ function initProgramme() {
             return total + s.series * (40 + s.repos);
         }, 0) + 600 + (prog.cardio ? 900 : 0);
         return Math.round(secondes / 60 / 5) * 5;
-    };
-
-    // « 60 kg × 10 · 10 · 9 rép. » (ou « 60×10 · 62,5×8 » si le poids a changé entre les séries)
-    const resumeEntree = (entree, unite) => {
-        const poids = [...new Set(entree.series.map(x => x.kg).filter(kg => kg > 0))];
-        const detail = entree.series.map(x => (poids.length > 1 && x.kg ? `${x.kg.toLocaleString(LOCALE)}×${x.reps}` : x.reps)).join(' · ');
-        return `${poids.length === 1 ? `${formatKg(poids[0])} × ` : ''}${detail} ${unite}`;
     };
 
     // ---------- Affichage ----------
@@ -993,6 +996,7 @@ function initProgramme() {
                 </ul>
                 <p class="guide__sauve">${t('Tout est enregistré dans ton carnet.')}</p>
                 <button type="button" class="btn btn--primary" data-guide="fermer">${t('Fermer')}</button>
+                <a href="progres.html" class="btn btn--ghost">${t('📈 Voir mes progrès')}</a>
             </div>`;
         guide.fini = true;
         guideEl.querySelector('[data-guide="fermer"]').focus();
@@ -1076,6 +1080,304 @@ function initProgramme() {
     });
 
     afficherProgramme();
+}
+
+/* ==========================================================
+   PAGE « MES PROGRÈS »
+   Tout est calculé à partir du carnet (localStorage) : rien
+   n'est envoyé nulle part. Une séance = un jour où au moins un
+   exercice a été noté. Les semaines commencent le dimanche.
+   ========================================================== */
+
+const SEMAINES_ACTIVITE = 12;
+const UN_JOUR = 24 * 60 * 60 * 1000;
+const CLES_SAUVEGARDE = [CLE_CARNET, CLE_EXERCICES, CLE_JOURS, 'ironpulse-calculateur'];
+
+// Date locale « 2026-10-26 » (pas d'UTC : une séance du soir reste sur le bon jour)
+const cleJour = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const dateDeJour = cle => {
+    const [a, m, j] = cle.split('-').map(Number);
+    return new Date(a, m - 1, j);
+};
+const debutSemaine = date => new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay());
+const formatCompact = n => new Intl.NumberFormat(LOCALE, { notation: n >= 10000 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Math.round(n));
+const formatDateCourte = date => date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
+const formatDateLongue = date => date.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' });
+
+// Graduations « rondes » pour l'axe vertical (0, 20, 40… ou 70, 72,5, 75…)
+function graduations(min, max, nombre = 4) {
+    if (min === max) {
+        min = Math.max(0, min - 5);
+        max += 5;
+    }
+    const brut = (max - min) / nombre;
+    const puissance = 10 ** Math.floor(Math.log10(brut));
+    const pas = [1, 2, 2.5, 5, 10].map(k => k * puissance).find(k => k >= brut);
+    const ticks = [];
+    for (let v = Math.floor(min / pas) * pas; v <= Math.ceil(max / pas) * pas + 1e-9; v += pas) ticks.push(Number(v.toFixed(2)));
+    return ticks;
+}
+
+/* Courbe d'une seule série (ligne 2 px, points cerclés, voile à 10 %), avec repère et
+   info-bulle au survol / au doigt / au clavier. points : [{ date, valeur, detail }] */
+function tracerCourbe(conteneur, points, formater) {
+    const W = conteneur.clientWidth;
+    const H = 230;
+    const m = { haut: 24, droite: 18, bas: 30, gauche: 46 };
+    const largeur = W - m.gauche - m.droite;
+    const hauteur = H - m.haut - m.bas;
+    const valeurs = points.map(p => p.valeur);
+    const ticks = graduations(Math.min(...valeurs), Math.max(...valeurs));
+    const yMin = ticks[0];
+    const yMax = ticks[ticks.length - 1];
+    const t0 = points[0].date.getTime();
+    const t1 = points[points.length - 1].date.getTime();
+    const x = p => m.gauche + (t1 === t0 ? largeur / 2 : ((p.date.getTime() - t0) / (t1 - t0)) * largeur);
+    const y = v => m.haut + hauteur - ((v - yMin) / (yMax - yMin || 1)) * hauteur;
+    const bas = m.haut + hauteur;
+
+    const ligne = points.map((p, i) => `${i ? 'L' : 'M'}${x(p).toFixed(1)},${y(p.valeur).toFixed(1)}`).join(' ');
+    const aire = `${ligne} L${x(points[points.length - 1]).toFixed(1)},${bas} L${x(points[0]).toFixed(1)},${bas} Z`;
+    const dernier = points[points.length - 1];
+    const ancreFin = x(dernier) > W - 90 ? 'end' : 'start';
+
+    conteneur.innerHTML = `
+        <svg class="courbe__svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+            ${ticks.map(v => `
+                <line class="courbe__grille" x1="${m.gauche}" x2="${W - m.droite}" y1="${y(v)}" y2="${y(v)}"/>
+                <text class="courbe__axe" x="${m.gauche - 8}" y="${y(v) + 4}" text-anchor="end">${v.toLocaleString(LOCALE)}</text>`).join('')}
+            <text class="courbe__axe" x="${x(points[0])}" y="${H - 8}" text-anchor="${points.length > 1 ? 'start' : 'middle'}">${formatDateCourte(points[0].date)}</text>
+            ${points.length > 1 ? `<text class="courbe__axe" x="${x(dernier)}" y="${H - 8}" text-anchor="end">${formatDateCourte(dernier.date)}</text>` : ''}
+            ${points.length > 1 ? `<path class="courbe__aire" d="${aire}"/><path class="courbe__ligne" d="${ligne}"/>` : ''}
+            <line class="courbe__repere" x1="0" x2="0" y1="${m.haut}" y2="${bas}" visibility="hidden"/>
+            ${points.map((p, i) => `<circle class="courbe__point" data-i="${i}" cx="${x(p)}" cy="${y(p.valeur)}" r="4.5"/>`).join('')}
+            <text class="courbe__etiquette" x="${x(dernier) + (ancreFin === 'end' ? -10 : 10)}" y="${y(dernier.valeur) - 10}" text-anchor="${ancreFin}">${formater(dernier.valeur)}</text>
+        </svg>
+        <div class="courbe__bulle" role="status" hidden></div>`;
+
+    const svg = conteneur.querySelector('svg');
+    const repere = svg.querySelector('.courbe__repere');
+    const bulle = conteneur.querySelector('.courbe__bulle');
+    const cercles = [...svg.querySelectorAll('.courbe__point')];
+    let actif = -1;
+
+    const montrer = i => {
+        actif = i;
+        const p = points[i];
+        repere.setAttribute('x1', x(p));
+        repere.setAttribute('x2', x(p));
+        repere.setAttribute('visibility', 'visible');
+        cercles.forEach((c, j) => c.classList.toggle('courbe__point--actif', j === i));
+        bulle.innerHTML = `<span>${formatDateLongue(p.date)}</span><strong>${formater(p.valeur)}</strong><small dir="ltr">${p.detail}</small>`;
+        bulle.hidden = false;
+        const gauche = Math.min(Math.max(x(p) - bulle.offsetWidth / 2, 4), W - bulle.offsetWidth - 4);
+        bulle.style.left = `${gauche}px`;
+        bulle.style.top = `${Math.max(y(p.valeur) - bulle.offsetHeight - 14, 0)}px`;
+    };
+    const cacher = () => {
+        actif = -1;
+        repere.setAttribute('visibility', 'hidden');
+        cercles.forEach(c => c.classList.remove('courbe__point--actif'));
+        bulle.hidden = true;
+    };
+    // Le point le plus proche horizontalement : pas besoin de viser le petit rond
+    const plusProche = clientX => {
+        const px = clientX - svg.getBoundingClientRect().left;
+        let meilleur = 0;
+        points.forEach((p, i) => { if (Math.abs(x(p) - px) < Math.abs(x(points[meilleur]) - px)) meilleur = i; });
+        return meilleur;
+    };
+
+    svg.addEventListener('pointermove', e => montrer(plusProche(e.clientX)));
+    svg.addEventListener('pointerdown', e => montrer(plusProche(e.clientX)));
+    svg.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') cacher(); });
+    conteneur.onkeydown = e => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const suivant = actif === -1 ? points.length - 1 : actif + (e.key === 'ArrowRight' ? 1 : -1);
+            montrer(Math.min(Math.max(suivant, 0), points.length - 1));
+        }
+        if (e.key === 'Escape') cacher();
+    };
+    conteneur.onblur = cacher;
+}
+
+function initProgres() {
+    const $ = id => document.getElementById(id);
+    let carnet = {};
+    try { carnet = JSON.parse(localStorage.getItem(CLE_CARNET)) || {}; } catch (e) { carnet = {}; }
+
+    initSauvegarde();
+
+    // Toutes les entrées du carnet, avec leur exercice et leur jour
+    const entrees = Object.entries(carnet)
+        .filter(([id, liste]) => EXERCICES[id] && Array.isArray(liste))
+        .flatMap(([id, liste]) => liste.map(entree => ({ id, ...entree, jour: cleJour(new Date(entree.date)) })));
+
+    if (!entrees.length) {
+        $('progres-vide').hidden = false;
+        return;
+    }
+    $('progres-contenu').hidden = false;
+
+    const volumeEntree = entree => (EXERCICES[entree.id].duree ? 0 : entree.series.reduce((somme, s) => somme + (s.kg || 0) * (s.reps || 0), 0));
+
+    // ---------- Résumé ----------
+    const jours = new Set(entrees.map(e => e.jour));
+    const aujourdhui = new Date();
+    const cetteSemaine = debutSemaine(aujourdhui);
+    const semaines = new Set([...jours].map(j => cleJour(debutSemaine(dateDeJour(j)))));
+    const seancesSemaine = [...jours].filter(j => dateDeJour(j) >= cetteSemaine).length;
+
+    // Semaines d'affilée : la semaine en cours compte si elle a déjà une séance, sinon on part de la précédente
+    let serie = 0;
+    let semaine = semaines.has(cleJour(cetteSemaine)) ? cetteSemaine : new Date(cetteSemaine.getTime() - 7 * UN_JOUR);
+    while (semaines.has(cleJour(semaine))) {
+        serie++;
+        semaine = new Date(semaine.getFullYear(), semaine.getMonth(), semaine.getDate() - 7);
+    }
+    const volumeTotal = entrees.reduce((somme, e) => somme + volumeEntree(e), 0);
+
+    $('tuiles-globales').innerHTML = [
+        [t('Séances'), formatNombre(jours.size)],
+        [t('Cette semaine'), formatNombre(seancesSemaine)],
+        [t("Semaines d'affilée"), `${formatNombre(serie)}${serie >= 2 ? ' 🔥' : ''}`],
+        [t('Kg soulevés'), formatCompact(volumeTotal)]
+    ].map(([libelle, valeur]) => `<li class="tuile"><span class="tuile__libelle">${libelle}</span><strong class="tuile__valeur">${valeur}</strong></li>`).join('');
+
+    // ---------- Activité : 12 semaines × 7 jours ----------
+    const exosParJour = {};
+    entrees.forEach(e => { (exosParJour[e.jour] = exosParJour[e.jour] || new Set()).add(e.id); });
+    const premiere = new Date(cetteSemaine.getFullYear(), cetteSemaine.getMonth(), cetteSemaine.getDate() - 7 * (SEMAINES_ACTIVITE - 1));
+    const libellesJours = NOMS_JOURS.map(nom => `<span class="activite__jour">${t(nom)}</span>`).join('');
+    const cases = [];
+    for (let s = 0; s < SEMAINES_ACTIVITE; s++) {
+        for (let d = 0; d < 7; d++) {
+            const date = new Date(premiere.getFullYear(), premiere.getMonth(), premiere.getDate() + s * 7 + d);
+            const cle = cleJour(date);
+            const nbExos = exosParJour[cle]?.size || 0;
+            const futur = date > aujourdhui;
+            const texte = `${formatDateLongue(date)} — ${nbExos ? t('{n} exercices notés', { n: nbExos }) : t('Repos')}`;
+            const classes = ['activite__case', nbExos ? 'activite__case--faite' : '', futur ? 'activite__case--futur' : '', cle === cleJour(aujourdhui) ? 'activite__case--aujourdhui' : ''].filter(Boolean).join(' ');
+            cases.push(`<span class="${classes}" title="${texte}" ${futur ? 'aria-hidden="true"' : `role="img" aria-label="${texte}"`}></span>`);
+        }
+    }
+    $('activite').innerHTML = libellesJours + cases.join('');
+
+    // ---------- Progression par exercice ----------
+    const dernierJour = id => carnet[id].reduce((max, e) => (e.date > max ? e.date : max), '');
+    const exercicesNotes = Object.keys(carnet).filter(id => EXERCICES[id] && carnet[id].length)
+        .sort((a, b) => dernierJour(b).localeCompare(dernierJour(a)));
+    const select = $('choix-exercice');
+    select.innerHTML = exercicesNotes.map(id => `<option value="${id}">${t(EXERCICES[id].nom)}</option>`).join('');
+
+    const afficherExercice = id => {
+        const exo = EXERCICES[id];
+        const liste = [...carnet[id]].sort((a, b) => a.date.localeCompare(b.date));
+        const avecPoids = !exo.duree && liste.some(e => e.series.some(s => s.kg > 0));
+        const unite = t(exo.duree ? 's' : 'rép.');
+        // Ce qu'on suit : le meilleur poids, sinon les meilleures répétitions / secondes
+        const valeur = e => Math.max(...e.series.map(s => (avecPoids ? s.kg || 0 : s.reps || 0)));
+        const formater = v => (avecPoids ? formatKg(v) : exo.duree ? t('{n} s', { n: v }) : `${v.toLocaleString(LOCALE)} ${t('rép.')}`);
+        $('courbe-sous').textContent = t(avecPoids ? 'Meilleur poids de chaque séance' : exo.duree ? 'Meilleur temps de chaque séance' : 'Meilleures répétitions de chaque séance');
+
+        const points = liste.map(e => ({ date: new Date(e.date), valeur: valeur(e), detail: resumeEntree(e, unite) }));
+        const record = points.reduce((meilleur, p) => (p.valeur > meilleur.valeur ? p : meilleur), points[0]);
+        const ecart = points[points.length - 1].valeur - points[0].valeur;
+        const signe = ecart > 0 ? '▲ +' : ecart < 0 ? '▼ −' : '';
+
+        $('tuiles-exercice').innerHTML = [
+            [t('Record'), formater(record.valeur), formatDateCourte(record.date)],
+            [t('Depuis le début'), points.length > 1 ? `${signe}${formater(Math.abs(ecart))}` : '—', points.length > 1 ? t('depuis le {date}', { date: formatDateCourte(points[0].date) }) : ''],
+            [t('Séances'), formatNombre(points.length), '']
+        ].map(([libelle, val, note]) => `<li class="tuile"><span class="tuile__libelle">${libelle}</span><strong class="tuile__valeur">${val}</strong>${note ? `<span class="tuile__note">${note}</span>` : ''}</li>`).join('');
+
+        const courbe = $('courbe');
+        courbe.setAttribute('role', 'img');
+        courbe.setAttribute('aria-label', `${t(exo.nom)} — ${$('courbe-sous').textContent}. ${t('Record')} : ${formater(record.valeur)}.`);
+        const dessiner = () => tracerCourbe(courbe, points, formater);
+        dessiner();
+        courbe._redessiner = dessiner;
+        $('courbe-note').hidden = points.length > 1;
+
+        // Tableau : la version texte de la courbe, de la plus récente à la plus ancienne
+        $('detail-lignes').innerHTML = [...points].reverse().map(p =>
+            `<tr><td>${formatDateLongue(p.date)}</td><td dir="ltr">${p.detail}</td><td>${formater(p.valeur)}</td></tr>`).join('');
+    };
+
+    select.addEventListener('change', () => afficherExercice(select.value));
+    afficherExercice(exercicesNotes[0]);
+
+    // La courbe s'adapte à la largeur (rotation du téléphone, fenêtre redimensionnée)
+    let largeurPrecedente = $('courbe').clientWidth;
+    new ResizeObserver(() => {
+        const courbe = $('courbe');
+        if (courbe.clientWidth !== largeurPrecedente && courbe._redessiner) {
+            largeurPrecedente = courbe.clientWidth;
+            courbe._redessiner();
+        }
+    }).observe($('courbe'));
+
+    // ---------- Dernières séances ----------
+    const parJour = {};
+    entrees.forEach(e => (parJour[e.jour] = parJour[e.jour] || []).push(e));
+    $('historique').innerHTML = Object.keys(parJour).sort().reverse().slice(0, 8).map(jour => {
+        const liste = parJour[jour];
+        const nbSeries = liste.reduce((somme, e) => somme + e.series.length, 0);
+        const volume = liste.reduce((somme, e) => somme + volumeEntree(e), 0);
+        const noms = [...new Set(liste.map(e => t(EXERCICES[e.id].nom)))];
+        return `
+            <li class="historique__ligne">
+                <div class="historique__date">${formatDateLongue(dateDeJour(jour))}</div>
+                <div class="historique__infos">
+                    <strong>${t('{n} exercices • {s} séries', { n: noms.length, s: nbSeries })}${volume ? ` • ${formatCompact(volume)} kg` : ''}</strong>
+                    <span>${noms.join(', ')}</span>
+                </div>
+            </li>`;
+    }).join('');
+}
+
+// Sauvegarde / restauration : le carnet n'existe que sur l'appareil, on permet d'en garder une copie
+function initSauvegarde() {
+    const message = document.getElementById('donnees-message');
+
+    document.getElementById('exporter').addEventListener('click', () => {
+        const donnees = {};
+        CLES_SAUVEGARDE.forEach(cle => {
+            try {
+                const valeur = localStorage.getItem(cle);
+                if (valeur !== null) donnees[cle] = valeur;
+            } catch (e) { /* stockage indisponible */ }
+        });
+        const fichier = new Blob([JSON.stringify({ application: 'iron-pulse', version: 1, date: new Date().toISOString(), donnees }, null, 2)], { type: 'application/json' });
+        const lien = document.createElement('a');
+        lien.href = URL.createObjectURL(fichier);
+        lien.download = `iron-pulse-sauvegarde-${cleJour(new Date())}.json`;
+        document.body.appendChild(lien);
+        lien.click();
+        lien.remove();
+        setTimeout(() => URL.revokeObjectURL(lien.href), 1000);
+        message.textContent = t('Sauvegarde téléchargée. Garde ce fichier en lieu sûr.');
+    });
+
+    document.getElementById('importer').addEventListener('change', async e => {
+        const fichier = e.target.files[0];
+        e.target.value = '';
+        if (!fichier) return;
+        try {
+            const contenu = JSON.parse(await fichier.text());
+            if (contenu.application !== 'iron-pulse' || typeof contenu.donnees !== 'object') throw new Error('format');
+            JSON.parse(contenu.donnees[CLE_CARNET] || '{}');
+            if (!window.confirm(t('Remplacer les données de cet appareil par cette sauvegarde ?'))) return;
+            CLES_SAUVEGARDE.forEach(cle => {
+                if (typeof contenu.donnees[cle] === 'string') localStorage.setItem(cle, contenu.donnees[cle]);
+            });
+            message.textContent = t('Sauvegarde restaurée ✓');
+            setTimeout(() => location.reload(), 800);
+        } catch (erreur) {
+            message.textContent = t("Ce fichier n'est pas une sauvegarde Iron Pulse valide.");
+        }
+    });
 }
 
 /* ==========================================================

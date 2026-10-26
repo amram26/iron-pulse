@@ -17,7 +17,7 @@ Site vitrine dédié à la musculation et à la performance. HTML/CSS/JS pur, sa
 ## Application installable et hors ligne (PWA)
 
 - `public/manifest.webmanifest` (nom, couleurs, raccourcis Programmes / Calculateur / Aliments) + icônes dans `public/icons/` (éclair dégradé sur fond noir : 192, 512, `maskable`, `apple-touch-icon` 180, `favicon.svg`, `favicon-32.png`). Aperçu de partage (Open Graph) : `public/images/og-image.jpg` (1200×630), balises `og:*` dans le `<head>` des deux pages.
-- `public/sw.js` : pages en « réseau d'abord » (copie en cache si pas de réseau, `/programme.html?…` retrouve `/programme`), CSS/JS/traductions en « cache puis mise à jour », photos et polices en « cache d'abord ». **Incrémenter `VERSION` dans `sw.js` à chaque modification de ce fichier** (les anciens caches sont supprimés).
+- `public/sw.js` : pages en « réseau d'abord » (copie en cache si pas de réseau, `/programme.html?…` retrouve `/programme`), CSS/JS/traductions en « cache puis mise à jour », photos et polices en « cache d'abord ». **Incrémenter `VERSION` dans `sw.js` à chaque modification de ce fichier** (l'ancien cache de base est supprimé) ; `VERSION_PHOTOS` à part, à ne changer que si des photos existantes sont remplacées (sinon tout est retéléchargé).
 - Au premier passage, `prechargerPhotos()` (`script.js`) met en réserve, en arrière-plan après 3 s, toutes les photos d'exercices (page programme) et d'aliments/nutrition (accueil) — sauf en mode économie de données. Tout nouveau fichier essentiel au fonctionnement doit être ajouté à `FICHIERS_BASE` dans `sw.js`.
 - Bouton « 📱 Installer l'application » dans le footer (affiché seulement quand le navigateur le propose) ; sur iPhone, une phrase explique « Partager → Sur l'écran d'accueil ».
 - Le service worker ne marche qu'en http(s) : en ouvrant `index.html` directement depuis le disque, le site fonctionne mais sans hors ligne. Test hors ligne vérifié le 26/10/2026 avec un serveur local imitant Cloudflare (pages, styles, traductions, 45 photos d'exercices et 27 d'aliments disponibles sans réseau).
@@ -48,7 +48,17 @@ Tout nouveau fichier du site (pages, images, favicon…) va dans `public/`. Rien
 | `#programmes`  | 3 cartes : Prise de masse, Perte de gras, Force      | Fait       |
 | `#nutrition`   | 3 macros (photos), journée type masse/sèche, 4 conseils | Fait     |
 | `#calculateur` | Calculateur calories + macros (formulaire / résultats) | Fait     |
-| `#contact`     | Pointe actuellement vers le `<footer>`               | Provisoire |
+| `#contact`     | Le `<footer>` (plus de lien « Contact » dans le menu, remplacé par « Progrès ») | Provisoire |
+
+Autres pages : `programme.html` (programmes) et `progres.html` (« Mes progrès »). Menu principal : Accueil, Programmes, Nutrition, Calculateur, Progrès.
+
+## Page « Mes progrès » (`progres.html`)
+
+- `initProgres` (`script.js`) calcule tout à partir du carnet (`ironpulse-carnet`) : une séance = un jour avec au moins un exercice noté ; semaines du dimanche au samedi.
+- Tuiles : séances, cette semaine, semaines d'affilée (la semaine en cours compte dès qu'elle a une séance), kg soulevés. Calendrier d'activité sur 12 semaines (case orange = séance, aujourd'hui entouré).
+- Progression par exercice : liste des exercices notés (le plus récent d'abord), tuiles Record / Depuis le début / Séances, courbe SVG maison `tracerCourbe` (une seule couleur `--neon-orange`, ligne 2 px, points cerclés, voile 10 %, grille fine, info-bulle au survol / au doigt / aux flèches du clavier) et **tableau détaillé** (version texte de la courbe). Valeur suivie : meilleur poids, sinon meilleures répétitions (exercices au poids du corps) ou meilleur temps (gainage).
+- Sauvegarde / restauration en fichier JSON (`initSauvegarde`, clés `CLES_SAUVEGARDE`) : le carnet n'existe que sur l'appareil.
+- Lien « 📈 Voir mes progrès » à la fin d'une séance guidée.
 
 Le menu de navigation contient déjà les liens vers les sections manquantes.
 
@@ -133,4 +143,4 @@ Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIF
 
 1. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
 2. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
-3. Idée proposée au propriétaire : page « Mes progrès » (graphiques à partir du carnet, nombre de séances, semaines d'affilée).
+3. Idée possible : synchroniser le carnet entre appareils (nécessiterait des comptes et un serveur ; aujourd'hui, sauvegarde/restauration par fichier).

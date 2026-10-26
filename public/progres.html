@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0b">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Iron Pulse">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Iron Pulse">
+    <meta property="og:title" content="Mes progrès — Iron Pulse">
+    <meta property="og:description" content="Programmes de musculation, nutrition, calculateur de calories, minuteur et carnet d'entraînement. Gratuit, sans inscription.">
+    <meta property="og:url" content="https://iron-pulse-site.pages.dev/progres">
+    <meta property="og:image" content="https://iron-pulse-site.pages.dev/images/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:locale:alternate" content="en_GB">
+    <meta property="og:locale:alternate" content="he_IL">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="description" content="Suis tes séances, tes records et ta progression exercice par exercice, à partir de ton carnet Iron Pulse.">
+    <title>Mes progrès — Iron Pulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Heebo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+</head>
+<body>
+
+    <!-- ===== EN-TÊTE ===== -->
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <a href="index.html" class="logo">
+                <span class="logo__icon">⚡</span>
+                IRON <span class="logo__accent">PULSE</span>
+            </a>
+
+            <nav class="nav" id="nav" aria-label="Navigation principale">
+                <ul class="nav__list">
+                    <li><a href="index.html#accueil" class="nav__link">Accueil</a></li>
+                    <li><a href="index.html#programmes" class="nav__link">Programmes</a></li>
+                    <li><a href="index.html#nutrition" class="nav__link">Nutrition</a></li>
+                    <li><a href="index.html#calculateur" class="nav__link">Calculateur</a></li>
+                    <li><a href="progres.html" class="nav__link active">Progrès</a></li>
+                </ul>
+            </nav>
+
+            <div class="lang-switch" role="group" aria-label="Langue">
+                <button type="button" data-lang="fr" lang="fr" aria-label="Français">FR</button>
+                <button type="button" data-lang="en" lang="en" aria-label="English">EN</button>
+                <button type="button" data-lang="he" lang="he" aria-label="עברית">עב</button>
+            </div>
+
+            <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="progres">
+        <!-- ===== HÉRO ===== -->
+        <section class="hero hero--court" id="haut">
+            <div class="hero__bg" aria-hidden="true"></div>
+            <div class="hero__glow"></div>
+            <div class="container hero__content">
+                <p class="hero__tag">Ton carnet d'entraînement</p>
+                <h1 class="hero__title">Mes <span class="text-gradient">progrès</span></h1>
+                <p class="hero__subtitle">Tes séances, tes records et ta progression, calculés à partir de ton carnet. Tout reste sur ton téléphone.</p>
+            </div>
+        </section>
+
+        <section class="section section--serree">
+            <div class="container">
+                <!-- Aucun entraînement enregistré -->
+                <div class="vide" id="progres-vide" hidden>
+                    <div class="vide__icone" aria-hidden="true">📈</div>
+                    <h2 class="vide__titre">Aucune séance enregistrée pour l'instant</h2>
+                    <p>Note tes séries avec « 📝 Noter » ou fais une séance guidée : tes courbes et tes records apparaîtront ici.</p>
+                    <a href="index.html#programmes" class="btn btn--primary">Choisir un programme</a>
+                </div>
+
+                <div id="progres-contenu" hidden>
+                    <ul class="tuiles" id="tuiles-globales" aria-label="Résumé"></ul>
+
+                    <article class="bloc">
+                        <header class="bloc__tete">
+                            <h2 class="bloc__titre">Ton activité</h2>
+                            <p class="bloc__sous">12 dernières semaines</p>
+                        </header>
+                        <div class="activite" id="activite"></div>
+                        <p class="activite__legende" aria-hidden="true">
+                            <span class="activite__case"></span> Repos
+                            <span class="activite__case activite__case--faite"></span> Séance faite
+                        </p>
+                    </article>
+
+                    <article class="bloc">
+                        <header class="bloc__tete">
+                            <h2 class="bloc__titre">Progression par exercice</h2>
+                            <p class="bloc__sous" id="courbe-sous">Meilleur poids de chaque séance</p>
+                        </header>
+                        <label class="field__label" for="choix-exercice">Exercice</label>
+                        <select class="select" id="choix-exercice"></select>
+                        <ul class="tuiles tuiles--3" id="tuiles-exercice" aria-label="Chiffres de l'exercice"></ul>
+                        <div class="courbe" id="courbe" tabindex="0"></div>
+                        <p class="courbe__note" id="courbe-note" hidden>Encore une séance de cet exercice pour voir ta courbe.</p>
+                        <details class="detail">
+                            <summary>Voir le détail des séances</summary>
+                            <div class="detail__defile">
+                                <table class="detail__table">
+                                    <thead>
+                                        <tr><th scope="col">Date</th><th scope="col">Séries</th><th scope="col">Meilleur</th></tr>
+                                    </thead>
+                                    <tbody id="detail-lignes"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </article>
+
+                    <article class="bloc">
+                        <header class="bloc__tete">
+                            <h2 class="bloc__titre">Dernières séances</h2>
+                        </header>
+                        <ul class="historique" id="historique"></ul>
+                    </article>
+                </div>
+
+                <!-- Sauvegarde : les données ne sont que sur cet appareil -->
+                <article class="bloc bloc--donnees">
+                    <header class="bloc__tete">
+                        <h2 class="bloc__titre">Tes données</h2>
+                    </header>
+                    <p class="bloc__texte">Ton carnet est enregistré uniquement sur cet appareil. Fais une sauvegarde pour ne rien perdre si tu changes de téléphone.</p>
+                    <div class="donnees__actions">
+                        <button type="button" class="btn btn--ghost" id="exporter">⬇ Sauvegarder mes données</button>
+                        <label class="btn btn--ghost donnees__importer">
+                            ⬆ Restaurer une sauvegarde
+                            <input type="file" id="importer" accept="application/json,.json">
+                        </label>
+                    </div>
+                    <p class="donnees__message" id="donnees-message" role="status" aria-live="polite"></p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== BARRE D'ACCÈS RAPIDE (mobile) ===== -->
+    <nav class="tabbar" aria-label="Accès rapide">
+        <a href="index.html#accueil" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+            <span>Accueil</span>
+        </a>
+        <a href="index.html#programmes" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/></svg>
+            <span>Programmes</span>
+        </a>
+        <a href="index.html#nutrition" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.5c-3-2-8-1-8 4.5 0 5 3 9 5.5 9 1.2 0 1.6-.6 2.5-.6s1.3.6 2.5.6c2.5 0 5.5-4 5.5-9 0-5.5-5-6.5-8-4.5z"/><path d="M12 7.5c0-2 1-4 3-4.5"/></svg>
+            <span>Nutrition</span>
+        </a>
+        <a href="index.html#recherche-aliment" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <span>Aliments</span>
+        </a>
+        <a href="index.html#calculateur" class="tabbar__link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7h7M9 11h.01M12 11h.01M15 11h.01M9 14.5h.01M12 14.5h.01M15 14.5h.01M9 18h.01M12 18h.01M15 18h.01"/></svg>
+            <span>Calcul</span>
+        </a>
+    </nav>
+
+    <!-- ===== PIED DE PAGE ===== -->
+    <footer class="footer">
+        <div class="container footer__inner">
+            <div class="footer__brand">
+                <a href="index.html" class="logo">
+                    <span class="logo__icon">⚡</span>
+                    IRON <span class="logo__accent">PULSE</span>
+                </a>
+                <p>La plateforme dédiée à la musculation et à la performance. Entraîne-toi avec intelligence.</p>
+                <button type="button" class="btn btn--ghost install-btn" id="install-btn" hidden>📱 Installer l'application</button>
+                <p class="install-hint" id="install-ios" hidden>Sur iPhone : touche Partager, puis « Sur l'écran d'accueil ».</p>
+            </div>
+
+            <div class="footer__col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="index.html#accueil">Accueil</a></li>
+                    <li><a href="index.html#programmes">Programmes</a></li>
+                    <li><a href="index.html#nutrition">Nutrition</a></li>
+                    <li><a href="index.html#calculateur">Calculateur</a></li>
+                    <li><a href="progres.html">Mes progrès</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:contact@ironpulse.fr">contact@ironpulse.fr</a></li>
+                    <li><a href="#">Instagram</a></li>
+                    <li><a href="#">YouTube</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer__bottom">
+            <div class="container">
+                <p>&copy; <span id="year"></span> Iron Pulse. Tous droits réservés. Photos : <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>, <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a> et <a href="https://pixabay.com" target="_blank" rel="noopener">Pixabay</a>.</p>
+                <a href="#haut" class="footer__top" aria-label="Retour en haut">↑ Haut de page</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="i18n/en.js"></script>
+    <script src="i18n/he.js"></script>
+    <script src="programmes.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

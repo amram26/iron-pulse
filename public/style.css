@@ -3424,3 +3424,448 @@ body.guide-ouvert:has(.timer:not([hidden])) .guide__corps {
     outline: 2px solid var(--neon-orange);
     outline-offset: 3px;
 }
+
+/* ==========================================================
+   PAGE « MES PROGRÈS »
+   Une seule couleur de données (l'orange du site), traits fins,
+   grille discrète ; les textes restent en couleurs de texte.
+   ========================================================== */
+.hero--court {
+    min-height: auto;
+    padding: calc(var(--header-h) + 40px) 0 36px;
+}
+
+.hero--court .hero__title {
+    margin-bottom: 12px;
+}
+
+.hero--court .hero__subtitle {
+    margin-bottom: 0;
+}
+
+.section--serree {
+    padding: 24px 0 64px;
+}
+
+/* ---------- Aucune donnée ---------- */
+.vide {
+    max-width: 520px;
+    margin: 0 auto 24px;
+    padding: 40px 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-align: center;
+}
+
+.vide__icone {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+.vide__titre {
+    font-family: var(--font-title);
+    font-size: 1.9rem;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    margin-bottom: 10px;
+}
+
+.vide p {
+    margin-bottom: 24px;
+    color: var(--text-muted);
+}
+
+/* ---------- Tuiles de chiffres ---------- */
+.tuiles {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tuiles--3 {
+    grid-template-columns: repeat(3, 1fr);
+    margin: 16px 0;
+}
+
+.tuile {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.tuile__libelle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.tuile__valeur {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.tuiles--3 .tuile {
+    padding: 12px 10px;
+}
+
+.tuiles--3 .tuile__valeur {
+    font-size: 1.15rem;
+}
+
+.tuile__note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ---------- Blocs ---------- */
+.bloc {
+    margin-bottom: 20px;
+    padding: 20px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.bloc__tete {
+    margin-bottom: 14px;
+}
+
+.bloc__titre {
+    font-family: var(--font-title);
+    font-size: 1.7rem;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+}
+
+.bloc__sous,
+.bloc__texte {
+    margin-top: 2px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.bloc .select {
+    margin-bottom: 4px;
+}
+
+/* ---------- Activité (calendrier) ---------- */
+.activite {
+    display: grid;
+    grid-template-columns: auto repeat(12, 1fr);
+    grid-template-rows: repeat(7, auto);
+    grid-auto-flow: column;
+    gap: 4px;
+}
+
+.activite__jour {
+    padding-right: 6px;
+    font-size: 0.65rem;
+    line-height: 1;
+    color: var(--text-muted);
+    align-self: center;
+}
+
+.activite__case {
+    display: inline-block;
+    aspect-ratio: 1;
+    min-width: 12px;
+    border-radius: 4px;
+    background: var(--surface-hover);
+}
+
+.activite__case--faite {
+    background: var(--neon-orange);
+    box-shadow: 0 0 8px rgba(255, 107, 26, 0.45);
+}
+
+.activite__case--futur {
+    opacity: 0.25;
+}
+
+.activite__case--aujourdhui {
+    outline: 2px solid var(--text);
+    outline-offset: 1px;
+}
+
+.activite__legende {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.activite__legende .activite__case {
+    width: 12px;
+    margin-left: 6px;
+}
+
+/* ---------- Courbe ---------- */
+.courbe {
+    position: relative;
+    margin-top: 6px;
+    border-radius: 12px;
+    outline: none;
+}
+
+.courbe:focus-visible {
+    box-shadow: 0 0 0 2px var(--neon-orange);
+}
+
+.courbe__svg {
+    display: block;
+    touch-action: pan-y;
+    cursor: crosshair;
+}
+
+.courbe__grille {
+    stroke: var(--border);
+    stroke-width: 1;
+}
+
+.courbe__axe {
+    fill: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.courbe__aire {
+    fill: var(--neon-orange);
+    opacity: 0.1;
+}
+
+.courbe__ligne {
+    fill: none;
+    stroke: var(--neon-orange);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.courbe__point {
+    fill: var(--neon-orange);
+    stroke: var(--surface);
+    stroke-width: 2;
+    transition: r 0.15s ease;
+}
+
+.courbe__point--actif {
+    r: 7px;
+}
+
+.courbe__repere {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+}
+
+.courbe__etiquette {
+    fill: var(--text);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.courbe__bulle {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 130px;
+    max-width: 240px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(10, 10, 11, 0.95);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.courbe__bulle span,
+.courbe__bulle small {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.courbe__bulle strong {
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.courbe__note {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* ---------- Tableau détaillé (version texte de la courbe) ---------- */
+.detail {
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.detail summary {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.detail__defile {
+    overflow-x: auto;
+}
+
+.detail__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+.detail__table th {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.detail__table td {
+    padding: 10px 6px;
+    border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+    vertical-align: top;
+}
+
+.detail__table td:first-child {
+    white-space: nowrap;
+    color: var(--text-muted);
+}
+
+.detail__table td:last-child {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ---------- Dernières séances ---------- */
+.historique {
+    list-style: none;
+}
+
+.historique__ligne {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.historique__ligne:last-child {
+    border-bottom: none;
+}
+
+.historique__date {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--neon-orange);
+}
+
+.historique__infos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.historique__infos strong {
+    font-size: 0.9rem;
+}
+
+.historique__infos span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* ---------- Sauvegarde ---------- */
+.donnees__actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.donnees__importer {
+    position: relative;
+    cursor: pointer;
+}
+
+.donnees__importer input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.donnees__importer:focus-within {
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
+}
+
+.donnees__message:not(:empty) {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: #86efac;
+}
+
+.guide__fin .btn--ghost {
+    margin-top: 0;
+}
+
+@media (min-width: 600px) {
+    .tuiles {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .tuiles--3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .bloc {
+        padding: 24px;
+    }
+
+    .donnees__actions {
+        grid-template-columns: repeat(2, auto);
+        justify-content: start;
+    }
+}
+
+@media (min-width: 961px) {
+    #progres .container {
+        max-width: 860px;
+    }
+}
+
+[lang="he"] :is(.vide__titre, .bloc__titre) {
+    font-weight: 800;
+    letter-spacing: 0;
+}

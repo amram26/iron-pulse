@@ -6,17 +6,21 @@
      mise à jour en arrière-plan pour la prochaine visite.
    - Photos et polices : gardées en cache dès qu'elles ont été vues.
    Changer VERSION à chaque modification de ce fichier pour
-   forcer le renouvellement des caches.
+   renouveler les fichiers de base. Les photos ont leur propre
+   version (VERSION_PHOTOS) : on ne la change que si des photos
+   existantes sont remplacées, pour éviter de tout retélécharger.
    ========================================================== */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
+const VERSION_PHOTOS = 'v1';
 const CACHE_BASE = `iron-pulse-base-${VERSION}`;
-const CACHE_PHOTOS = `iron-pulse-photos-${VERSION}`;
+const CACHE_PHOTOS = `iron-pulse-photos-${VERSION_PHOTOS}`;
 
 // Cloudflare Pages sert les pages sans « .html » : on met en cache les adresses finales
 const FICHIERS_BASE = [
     '/',
     '/programme',
+    '/progres',
     '/style.css',
     '/script.js',
     '/i18n.js',
@@ -47,7 +51,7 @@ self.addEventListener('activate', evenement => {
     evenement.waitUntil(
         caches.keys()
             .then(noms => Promise.all(noms
-                .filter(nom => nom.startsWith('iron-pulse-') && !nom.endsWith(VERSION))
+                .filter(nom => nom.startsWith('iron-pulse-') && nom !== CACHE_BASE && nom !== CACHE_PHOTOS)
                 .map(nom => caches.delete(nom))))
             .then(() => self.clients.claim())
     );
