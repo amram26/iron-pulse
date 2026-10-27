@@ -241,6 +241,27 @@
                     <ul class="search__results" id="aliment-resultats"></ul>
                 </div>
 
+                <div class="journal reveal" id="journal">
+                    <h3 class="search__title">Mon journal <span class="text-gradient">du jour</span></h3>
+                    <p class="search__subtitle">Ajoute ce que tu manges avec la recherche ci-dessus : tes calories et tes protéines se comptent toutes seules.</p>
+                    <div class="journal__jauges">
+                        <div class="jauge">
+                            <div class="jauge__tete"><span class="jauge__nom">Calories</span><strong class="jauge__valeur" id="jauge-kcal-valeur" dir="ltr">0</strong></div>
+                            <div class="jauge__barre" role="progressbar" aria-valuemin="0" aria-valuemax="100"><span class="jauge__remplissage" id="jauge-kcal"></span></div>
+                            <span class="jauge__reste" id="jauge-kcal-reste"></span>
+                        </div>
+                        <div class="jauge">
+                            <div class="jauge__tete"><span class="jauge__nom">Protéines</span><strong class="jauge__valeur" id="jauge-prot-valeur" dir="ltr">0</strong></div>
+                            <div class="jauge__barre" role="progressbar" aria-valuemin="0" aria-valuemax="100"><span class="jauge__remplissage" id="jauge-prot"></span></div>
+                            <span class="jauge__reste" id="jauge-prot-reste"></span>
+                        </div>
+                    </div>
+                    <p class="journal__macros" id="journal-macros"></p>
+                    <p class="journal__objectif" id="journal-objectif"></p>
+                    <ul class="journal__liste" id="journal-liste"></ul>
+                    <p class="journal__vide" id="journal-vide">Rien de noté aujourd'hui. Cherche un aliment et touche « + Ajouter à mon journal ».</p>
+                </div>
+
                 <div class="day reveal">
                     <div class="day__head">
                         <h3 class="day__title">Une journée <span class="text-gradient">type</span></h3>

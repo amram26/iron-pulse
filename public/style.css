@@ -4361,3 +4361,523 @@ body.outil-ouvert {
     font-weight: 800;
     letter-spacing: 0;
 }
+
+/* ==========================================================
+   JOURNAL DU JOUR (accueil, nutrition)
+   ========================================================== */
+.journal {
+    max-width: 520px;
+    margin: 24px auto 0;
+    padding: 24px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.journal__jauges {
+    display: grid;
+    gap: 16px;
+}
+
+.jauge__tete {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.jauge__nom {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.jauge__valeur {
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.jauge__barre {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.jauge__remplissage {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--gradient);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.jauge__reste {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.jauge__reste:empty {
+    display: none;
+}
+
+.journal__macros,
+.journal__objectif {
+    margin-top: 14px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.journal__macros:empty {
+    display: none;
+}
+
+.journal__objectif a {
+    color: var(--neon-orange);
+    font-weight: 600;
+}
+
+.journal__liste {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.journal__liste:empty {
+    display: none;
+}
+
+.journal__ligne {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.journal__nom,
+.journal__chiffres {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.journal__chiffres {
+    align-items: flex-end;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.journal__nom small,
+.journal__chiffres small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.journal__vide {
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Bouton « + Ajouter à mon journal » sur chaque aliment trouvé */
+.aliment__ajout {
+    min-height: 40px;
+    margin-top: 8px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 107, 26, 0.5);
+    border-radius: 999px;
+    background: rgba(255, 107, 26, 0.08);
+    color: var(--neon-orange);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.aliment__ajout:active {
+    transform: scale(0.96);
+}
+
+/* Fenêtre « Ajouter à mon journal » (même cadre que les outils de charge) */
+.ajout {
+    display: grid;
+    gap: 16px;
+}
+
+.ajout__aliment {
+    margin-top: -6px;
+    font-size: 1rem;
+}
+
+.ajout__aliment span {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.ajout__groupe {
+    border: none;
+    min-width: 0;
+}
+
+.ajout__groupe legend {
+    margin-bottom: 8px;
+}
+
+.ajout__portions {
+    max-width: none;
+}
+
+.ajout__portions label {
+    font-size: 1.3rem;
+}
+
+.ajout__apercu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ajout .calc__error:empty {
+    display: none;
+}
+
+/* ==========================================================
+   PROGRAMME — échauffement calculé et semaine légère
+   ========================================================== */
+.seance__liens {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 8px;
+}
+
+.seance__astuce {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8rem;
+}
+
+.guide__echauffement {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border-left: 3px solid var(--neon-orange);
+    border-radius: 0 10px 10px 0;
+    background: rgba(255, 107, 26, 0.08);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.guide__echauffement strong {
+    color: var(--text);
+}
+
+.recup {
+    display: grid;
+    gap: 8px;
+    margin: 16px 20px 0;
+    padding: 14px 16px;
+    border: 1px solid rgba(129, 140, 248, 0.45);
+    border-radius: 14px;
+    background: rgba(129, 140, 248, 0.08);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.recup strong {
+    color: var(--text);
+}
+
+.recup--active {
+    border-color: rgba(129, 140, 248, 0.7);
+}
+
+.recup .seance__outils {
+    justify-self: start;
+    margin: 0;
+    padding: 6px 0;
+    color: #a5b4fc;
+}
+
+.recup__actions {
+    display: grid;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+/* ==========================================================
+   PROGRAMME — « Mon programme » (éditeur)
+   ========================================================== */
+.freq__perso {
+    margin-top: 14px;
+}
+
+.freq__perso .chip-btn {
+    min-height: 44px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.chip-btn--actif {
+    border-color: var(--neon-orange);
+    color: var(--neon-orange);
+}
+
+.perso {
+    padding: 24px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.perso__titre {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    line-height: 1;
+}
+
+.perso__intro {
+    margin: 8px 0 18px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.perso__jours {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.perso__jour {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 4px 2px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.perso__jour[aria-pressed="true"] {
+    border-color: transparent;
+    background: var(--gradient);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(255, 45, 85, 0.3);
+}
+
+.perso__jour--repos {
+    border-style: dashed;
+    opacity: 0.55;
+    cursor: default;
+}
+
+.perso__jour small {
+    font-size: 0.62rem;
+    font-weight: 500;
+}
+
+.perso__seance {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+}
+
+.perso__seance-tete {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.perso__seance-jour {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    min-width: 48px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(255, 107, 26, 0.12);
+    color: var(--neon-orange);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* 16px minimum : évite le zoom automatique d'iOS au focus */
+.perso__nom {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.perso__nom:focus {
+    outline: none;
+    border-color: var(--neon-orange);
+}
+
+.perso__exos {
+    list-style: none;
+    display: grid;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.perso__exo {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 6px 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.perso__num {
+    font-family: var(--font-title);
+    font-size: 1.3rem;
+    color: var(--neon-orange);
+}
+
+.perso__exo-nom {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.perso__exo-nom small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.perso__exo-actions {
+    display: flex;
+}
+
+.perso__exo-actions button {
+    width: 40px;
+    height: 44px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.perso__exo-actions button:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.perso__exo-actions button[data-retirer] {
+    color: #fda4af;
+}
+
+.perso__ajout {
+    width: 100%;
+}
+
+.perso__vide {
+    margin: 4px 0 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.perso__erreur {
+    margin-top: 14px;
+    color: var(--neon-red);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.perso__erreur:empty {
+    display: none;
+}
+
+.perso__actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.perso .seance__reset {
+    margin: 12px auto 0;
+}
+
+@media (hover: hover) {
+    .aliment__ajout:hover {
+        background: rgba(255, 107, 26, 0.16);
+    }
+
+    .perso__jour:not(.perso__jour--repos):hover {
+        border-color: var(--neon-orange);
+    }
+
+    .perso__exo-actions button:not(:disabled):hover {
+        background: var(--surface-hover);
+        color: var(--text);
+    }
+}
+
+@media (min-width: 600px) {
+    .recup__actions,
+    .perso__actions {
+        grid-template-columns: auto auto;
+        justify-content: start;
+    }
+
+    .perso {
+        padding: 28px;
+    }
+}
+
+[lang="he"] .perso__titre {
+    font-weight: 800;
+    letter-spacing: 0;
+}

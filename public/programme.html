@@ -85,7 +85,7 @@
         <!-- ===== SÉANCES ===== -->
         <section class="section" id="seances">
             <div class="container">
-                <div class="freq">
+                <div class="freq" id="prog-freq">
                     <h2 class="freq__title">Combien de séances <span class="text-gradient">par semaine ?</span></h2>
                     <div class="segmented segmented--4" id="prog-jours">
                         <input type="radio" name="jours" id="jours-2" value="2">
@@ -98,14 +98,20 @@
                         <label for="jours-5">5</label>
                     </div>
                     <p class="freq__desc" id="prog-split"></p>
+                    <div class="freq__perso" id="perso-boutons"></div>
                 </div>
 
-                <h3 class="block-title">Ta semaine</h3>
-                <ol class="week" id="prog-semaine"></ol>
+                <!-- Éditeur « Mon programme » (rempli en JS) -->
+                <div class="perso" id="perso-editeur" hidden></div>
 
-                <h3 class="block-title">Tes séances</h3>
-                <div class="session-tabs" id="prog-onglets" role="tablist" aria-label="Séances du programme"></div>
-                <div id="prog-seance"></div>
+                <div id="prog-contenu">
+                    <h3 class="block-title">Ta semaine</h3>
+                    <ol class="week" id="prog-semaine"></ol>
+
+                    <h3 class="block-title">Tes séances</h3>
+                    <div class="session-tabs" id="prog-onglets" role="tablist" aria-label="Séances du programme"></div>
+                    <div id="prog-seance"></div>
+                </div>
             </div>
         </section>
 

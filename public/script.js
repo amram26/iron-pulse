@@ -184,7 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ---------- Recherche d'aliments ---------- */
     const champAliment = document.getElementById('aliment-recherche');
-    if (champAliment && typeof ALIMENTS !== 'undefined') initRechercheAliments(champAliment);
+    if (champAliment && typeof ALIMENTS !== 'undefined') {
+        initRechercheAliments(champAliment);
+        initJournal();
+    }
 
     /* ---------- Page programme + minuteur de repos ---------- */
     if (document.getElementById('programme') && typeof PROGRAMMES !== 'undefined') {
@@ -486,9 +489,15 @@ function initRechercheAliments(champ) {
                         <span class="aliment__prot"><strong>${formatValeur(a.prot * ratio)} g</strong> ${t('protéines')}</span>
                     </div>
                     <p class="aliment__cent">${t('Pour 100 g : {kcal} kcal • {prot} g prot. • {gluc} g gluc. • {lip} g lip.', { kcal: a.kcal, prot: formatValeur(a.prot), gluc: formatValeur(a.gluc), lip: formatValeur(a.lip) })}</p>
+                    <button type="button" class="aliment__ajout" data-ajouter="${ALIMENTS.indexOf(a)}">${t('+ Ajouter à mon journal')}</button>
                 </div>
             </li>`;
     };
+
+    resultatsEl.addEventListener('click', e => {
+        const bouton = e.target.closest('[data-ajouter]');
+        if (bouton) ouvrirAjoutAliment(ALIMENTS[Number(bouton.dataset.ajouter)]);
+    });
 
     const afficher = () => {
         const requete = champ.value.trim();
@@ -521,6 +530,218 @@ function initRechercheAliments(champ) {
         });
     });
 
+    afficher();
+}
+
+/* ==========================================================
+   JOURNAL DU JOUR — ce que j'ai mangé aujourd'hui, comparé
+   à l'objectif du calculateur. Stocké sur l'appareil par jour :
+   { '2026-10-27': [{ nom: 'Œuf', g: 120 }, ...] }
+   ========================================================== */
+
+const CLE_REPAS = 'ironpulse-repas';
+const JOURS_GARDES_REPAS = 14;
+const FRACTIONS_PORTION = [[0.5, '½'], [1, '1'], [1.5, '1½'], [2, '2']];
+const EVENEMENT_REPAS = 'ironpulse:repas';
+
+const lireRepas = () => {
+    try {
+        const repas = JSON.parse(localStorage.getItem(CLE_REPAS));
+        return repas && typeof repas === 'object' && !Array.isArray(repas) ? repas : {};
+    } catch (e) { return {}; }
+};
+
+const ecrireRepas = repas => {
+    // On ne garde que les derniers jours
+    const jours = Object.keys(repas).filter(jour => repas[jour]?.length).sort().slice(-JOURS_GARDES_REPAS);
+    try { localStorage.setItem(CLE_REPAS, JSON.stringify(Object.fromEntries(jours.map(jour => [jour, repas[jour]])))); } catch (e) { /* stockage indisponible */ }
+    SauvegardeEnLigne.planifier();
+    document.dispatchEvent(new Event(EVENEMENT_REPAS));
+};
+
+const valeursAliment = (aliment, g) => ({
+    kcal: (aliment.kcal * g) / 100,
+    prot: (aliment.prot * g) / 100,
+    gluc: (aliment.gluc * g) / 100,
+    lip: (aliment.lip * g) / 100
+});
+
+// Besoins calculés à partir de la saisie enregistrée du calculateur (null s'il n'a pas été rempli)
+function objectifNutrition() {
+    try {
+        const v = JSON.parse(localStorage.getItem(CALC_STORAGE_KEY));
+        if (!v || !OBJECTIFS[v.objectif] || !(v.activite > 0) || !v.sexe) return null;
+        const valide = Object.entries(LIMITES).every(([champ, { min, max }]) => v[champ] >= min && v[champ] <= max);
+        return valide ? calculerBesoins(v) : null;
+    } catch (e) { return null; }
+}
+
+// Fenêtre « Ajouter à mon journal » : nombre de portions ou grammes, aperçu des calories et protéines
+function ouvrirAjoutAliment(aliment) {
+    document.getElementById('ajout-aliment')?.remove();
+    const retour = document.activeElement;
+    const portion = aliment.portion.g;
+    const fenetre = document.createElement('div');
+    fenetre.id = 'ajout-aliment';
+    fenetre.className = 'outil';
+    fenetre.setAttribute('role', 'dialog');
+    fenetre.setAttribute('aria-modal', 'true');
+    fenetre.setAttribute('aria-labelledby', 'ajout-titre');
+    fenetre.innerHTML = `
+        <div class="outil__fond" data-fermer></div>
+        <form class="outil__panneau ajout" novalidate>
+            <div class="outil__tete">
+                <h2 class="outil__titre" id="ajout-titre">${t('Ajouter à mon journal')}</h2>
+                <button type="button" class="guide__fermer" data-fermer aria-label="${t('Fermer')}">✕</button>
+            </div>
+            <p class="ajout__aliment"><strong>${t(aliment.nom)}</strong> <span>${t(aliment.portion.label)} (${portion} g)</span></p>
+            <fieldset class="ajout__groupe">
+                <legend class="field__label">${t('Nombre de portions')}</legend>
+                <div class="segmented segmented--4 ajout__portions">
+                    ${FRACTIONS_PORTION.map(([valeur, libelle], i) => `
+                        <input type="radio" name="ajout-portion" id="ajout-portion-${i}" value="${valeur}"${valeur === 1 ? ' checked' : ''}>
+                        <label for="ajout-portion-${i}">${libelle}</label>`).join('')}
+                </div>
+            </fieldset>
+            <div class="field">
+                <label class="field__label" for="ajout-grammes">${t('Ou la quantité en grammes')}</label>
+                <div class="input-unit"><input type="number" id="ajout-grammes" inputmode="numeric" min="1" max="2000" step="1" value="${portion}"><span>g</span></div>
+            </div>
+            <div class="ajout__apercu" id="ajout-apercu" aria-live="polite"></div>
+            <p class="calc__error" id="ajout-erreur" role="alert"></p>
+            <button type="submit" class="btn btn--primary">${t('✓ Ajouter')}</button>
+        </form>`;
+    document.body.appendChild(fenetre);
+    document.body.classList.add('outil-ouvert');
+
+    const champ = fenetre.querySelector('#ajout-grammes');
+    const grammes = () => Math.round(parseFloat(champ.value));
+    const apercu = () => {
+        const g = grammes();
+        const v = valeursAliment(aliment, g > 0 ? g : 0);
+        fenetre.querySelector('#ajout-apercu').innerHTML = `
+            <span class="aliment__kcal"><strong>${formatNombre(v.kcal)}</strong> ${t('kcal')}</span>
+            <span class="aliment__prot"><strong>${formatValeur(v.prot)} g</strong> ${t('protéines')}</span>`;
+    };
+
+    const fermer = () => {
+        fenetre.remove();
+        document.body.classList.remove('outil-ouvert');
+        retour?.focus?.({ preventScroll: true });
+    };
+
+    fenetre.addEventListener('click', e => { if (e.target.closest('[data-fermer]')) fermer(); });
+    fenetre.addEventListener('keydown', e => { if (e.key === 'Escape') fermer(); });
+    fenetre.addEventListener('change', e => {
+        if (e.target.name !== 'ajout-portion') return;
+        champ.value = Math.round(portion * Number(e.target.value));
+        apercu();
+    });
+    champ.addEventListener('input', () => {
+        // Le bouton de portion reste coché seulement s'il correspond aux grammes tapés
+        fenetre.querySelectorAll('[name="ajout-portion"]').forEach(radio => {
+            radio.checked = Math.round(portion * Number(radio.value)) === grammes();
+        });
+        apercu();
+    });
+
+    fenetre.querySelector('form').addEventListener('submit', e => {
+        e.preventDefault();
+        const g = grammes();
+        if (!(g >= 1 && g <= 2000)) {
+            fenetre.querySelector('#ajout-erreur').textContent = t('Tape une quantité entre 1 et 2000 g.');
+            champ.focus();
+            return;
+        }
+        const repas = lireRepas();
+        const aujourdhui = cleJour(new Date());
+        repas[aujourdhui] = [...(repas[aujourdhui] || []), { nom: aliment.nom, g }];
+        ecrireRepas(repas);
+        fermer();
+        afficherToast(`
+            <span class="toast__icone" aria-hidden="true">🍽️</span>
+            <span class="toast__texte">
+                <strong>${t('Ajouté à ton journal')}</strong>
+                <span>${t(aliment.nom)} : ${t('{kcal} kcal • {prot} g de protéines', { kcal: formatNombre(valeursAliment(aliment, g).kcal), prot: formatValeur(valeursAliment(aliment, g).prot) })}</span>
+            </span>`, 3000);
+    });
+
+    apercu();
+    champ.focus({ preventScroll: true });
+    champ.select();
+}
+
+function initJournal() {
+    const bloc = document.getElementById('journal');
+    if (!bloc) return;
+    const $ = id => document.getElementById(id);
+
+    // Jauge : valeur du jour, et objectif si le calculateur a été rempli
+    const jauge = (nom, valeur, objectif, unite, libelle) => {
+        const texte = n => `${formatNombre(n)}${unite === 'g' ? ' g' : ` ${t('kcal')}`}`;
+        const barre = $(`jauge-${nom}`);
+        const pourcentage = objectif ? Math.min(100, (valeur / objectif) * 100) : 0;
+        $(`jauge-${nom}-valeur`).textContent = objectif ? `${texte(valeur)} / ${texte(objectif)}` : texte(valeur);
+        barre.style.width = `${pourcentage}%`;
+        barre.parentElement.hidden = !objectif;
+        barre.parentElement.setAttribute('aria-valuenow', Math.round(pourcentage));
+        barre.parentElement.setAttribute('aria-label', libelle);
+        const reste = objectif - valeur;
+        $(`jauge-${nom}-reste`).textContent = !objectif ? ''
+            : reste > 0 ? t('Encore {n}', { n: texte(reste) })
+                : nom === 'kcal' && -reste >= 50 ? t('{n} au-dessus de ton objectif', { n: texte(-reste) })
+                    : t('Objectif atteint ✓');
+    };
+
+    const afficher = () => {
+        const aujourdhui = cleJour(new Date());
+        const liste = (lireRepas()[aujourdhui] || [])
+            .map((repas, i) => ({ ...repas, i, aliment: ALIMENTS.find(a => a.nom === repas.nom) }))
+            .filter(repas => repas.aliment && repas.g > 0);
+        const total = { kcal: 0, prot: 0, gluc: 0, lip: 0 };
+        liste.forEach(repas => {
+            const v = valeursAliment(repas.aliment, repas.g);
+            Object.keys(total).forEach(cle => { total[cle] += v[cle]; });
+        });
+        const objectif = objectifNutrition();
+
+        jauge('kcal', total.kcal, objectif?.cible, 'kcal', t('Calories du jour'));
+        jauge('prot', total.prot, objectif?.proteines, 'g', t('Protéines du jour'));
+        $('journal-macros').textContent = liste.length
+            ? t('Glucides : {gluc} g • Lipides : {lip} g', { gluc: formatNombre(total.gluc), lip: formatNombre(total.lip) })
+            : '';
+        $('journal-objectif').innerHTML = objectif
+            ? t('Objectif « {label} » calculé avec tes infos du calculateur.', { label: t(objectif.reglages.label) })
+            : t('<a href="#calculateur">Remplis le calculateur</a> pour voir ton objectif du jour.');
+
+        $('journal-vide').hidden = liste.length > 0;
+        $('journal-liste').innerHTML = [...liste].reverse().map(repas => {
+            const v = valeursAliment(repas.aliment, repas.g);
+            return `
+                <li class="journal__ligne">
+                    <span class="journal__nom">${t(repas.aliment.nom)}<small>${repas.g} g</small></span>
+                    <span class="journal__chiffres"><span><strong>${formatNombre(v.kcal)}</strong> ${t('kcal')}</span><small>${formatValeur(v.prot)} g ${t('prot.')}</small></span>
+                    <button type="button" class="detail__supprimer" data-retirer-repas="${repas.i}" aria-label="${t('Retirer {nom} du journal', { nom: t(repas.aliment.nom) })}">✕</button>
+                </li>`;
+        }).join('');
+    };
+
+    bloc.addEventListener('click', e => {
+        const bouton = e.target.closest('[data-retirer-repas]');
+        if (!bouton) return;
+        const repas = lireRepas();
+        const aujourdhui = cleJour(new Date());
+        (repas[aujourdhui] || []).splice(Number(bouton.dataset.retirerRepas), 1);
+        ecrireRepas(repas);
+        $('journal-liste').querySelector('.detail__supprimer')?.focus({ preventScroll: true });
+    });
+
+    document.addEventListener(EVENEMENT_REPAS, afficher);
+    // L'objectif suit le calculateur (après son propre enregistrement)
+    const calcul = document.getElementById('calc-form');
+    ['input', 'submit'].forEach(type => calcul?.addEventListener(type, () => setTimeout(afficher, 0)));
+    // Retour sur la page le lendemain : la journée repart de zéro
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') afficher(); });
     afficher();
 }
 
@@ -577,6 +798,105 @@ const formatRepos = sec => {
     return reste ? t('{m} min {s}', { m: Math.floor(sec / 60), s: reste }) : t('{m} min', { m: sec / 60 });
 };
 
+/* ---------- Échauffement : séries légères calculées avant le premier exercice ---------- */
+// [pourcentage de la charge de travail, répétitions] ; plus de paliers avant une série lourde (force)
+const PALIERS_ECHAUFFEMENT = {
+    normal: [[0.5, 10], [0.75, 5]],
+    lourd: [[0.4, 10], [0.6, 5], [0.8, 3], [0.9, 1]]
+};
+
+function seriesEchauffement(kg, lourd) {
+    if (!(kg >= 20)) return [];
+    const series = [];
+    PALIERS_ECHAUFFEMENT[lourd ? 'lourd' : 'normal'].forEach(([pourcentage, reps]) => {
+        const charge = arrondir25(kg * pourcentage);
+        if (charge > 0 && charge < kg && !series.some(s => s.kg === charge)) series.push({ kg: charge, reps });
+    });
+    return series;
+}
+
+const texteEchauffement = series => series.map(s => `${formatKg(s.kg)} × ${s.reps}`).join(' → ');
+
+/* ---------- Mon programme : séances composées par l'utilisateur ---------- */
+const CLE_PERSO = 'ironpulse-perso';
+const MAX_EXOS_PERSO = 10;
+// Familles d'exercices regroupées par partie du corps (liste de choix et résumé de la séance)
+const PARTIES_CORPS = [
+    ['Jambes', ['jambes', 'jambes-ciblees', 'charniere', 'fessiers', 'ischios', 'mollets']],
+    ['Pectoraux', ['pecs', 'pecs-cibles']],
+    ['Dos', ['dos-vertical', 'dos-horizontal']],
+    ['Épaules', ['epaules', 'epaules-ciblees', 'epaules-arriere']],
+    ['Bras', ['biceps', 'triceps']],
+    ['Abdos', ['abdos']]
+];
+// Mouvements de base (plus lourds, plus de repos) ; les autres familles sont de l'isolation
+const GROUPES_BASE = ['jambes', 'charniere', 'fessiers', 'pecs', 'epaules', 'dos-vertical', 'dos-horizontal'];
+// Jours où l'on peut s'entraîner : du dimanche au jeudi (vendredi et samedi = repos)
+const JOURS_ENTRAINEMENT = [0, 1, 2, 3, 4];
+
+/* ---------- Semaine légère (récupération) ---------- */
+const CLE_RECUP = 'ironpulse-recup';
+const DUREE_RECUP = 7 * 24 * 60 * 60 * 1000;
+const REDUCTION_RECUP = 0.9;           // poids 10 % plus légers
+const SEMAINES_AVANT_RECUP = 8;        // semaines d'affilée avant de conseiller une semaine légère
+const SEANCES_STAGNATION = 3;          // séances sans progrès pour dire qu'un exercice stagne
+
+const seriesRecup = series => Math.max(2, Math.round(series * 0.6));
+const poidsRecup = kg => (kg >= 10 ? arrondir25(kg * REDUCTION_RECUP) : kg);
+
+/* Renvoie { active, fin } pendant une semaine légère, { conseil, stagnent, semaines } quand une
+   semaine légère est conseillée, sinon null. Un exercice stagne quand ses 3 dernières séances ne
+   dépassent pas son meilleur résultat d'avant (charge max estimée : plus de poids OU plus de
+   répétitions comptent comme un progrès). Les séances faites en semaine légère sont ignorées. */
+function etatRecuperation(carnet, etat, maintenant = Date.now()) {
+    etat = etat || {};
+    if (etat.debut && maintenant - etat.debut < DUREE_RECUP) return { active: true, fin: new Date(etat.debut + DUREE_RECUP) };
+    const finDerniere = etat.debut ? etat.debut + DUREE_RECUP : 0;
+    if (maintenant - finDerniere < 4 * 7 * UN_JOUR) return null;
+    if (etat.reporte && maintenant - etat.reporte < 7 * UN_JOUR) return null;
+
+    const stagnent = Object.entries(carnet).filter(([id, liste]) => {
+        if (!EXERCICES[id] || !Array.isArray(liste)) return false;
+        const normales = liste.filter(e => !e.leger && new Date(e.date).getTime() > finDerniere);
+        if (normales.length < SEANCES_STAGNATION + 1) return false;
+        const recentes = normales.slice(0, SEANCES_STAGNATION);
+        if (maintenant - new Date(recentes[SEANCES_STAGNATION - 1].date).getTime() > 6 * 7 * UN_JOUR) return false;
+        const avecPoids = !EXERCICES[id].duree && normales.some(e => e.series.some(s => s.kg > 0));
+        const meilleur = entrees => Math.max(0, ...entrees.flatMap(e => e.series)
+            .map(s => (avecPoids ? chargeMaxEstimee(s.kg || 0, s.reps || 0) : s.reps || 0)));
+        return meilleur(recentes) <= meilleur(normales.slice(SEANCES_STAGNATION));
+    }).map(([id]) => id);
+
+    // Semaines d'affilée avec au moins une séance, depuis la dernière semaine légère
+    const semainesFaites = new Set(Object.values(carnet).filter(Array.isArray).flat()
+        .filter(e => e && e.date && new Date(e.date).getTime() > finDerniere)
+        .map(e => cleJour(debutSemaine(new Date(e.date)))));
+    const cetteSemaine = debutSemaine(new Date(maintenant));
+    let semaine = semainesFaites.has(cleJour(cetteSemaine)) ? cetteSemaine : new Date(cetteSemaine.getTime() - 7 * UN_JOUR);
+    let semaines = 0;
+    while (semainesFaites.has(cleJour(semaine))) {
+        semaines++;
+        semaine = new Date(semaine.getFullYear(), semaine.getMonth(), semaine.getDate() - 7);
+    }
+
+    if (stagnent.length >= 2 || semaines >= SEMAINES_AVANT_RECUP) return { conseil: true, stagnent, semaines };
+    return null;
+}
+
+// Phrase qui explique pourquoi une semaine légère est conseillée
+function raisonRecuperation(etat) {
+    const raisons = [];
+    if (etat.stagnent.length >= 2) {
+        raisons.push(t('{n} exercices ne progressent plus depuis {s} séances ({noms}).', {
+            n: etat.stagnent.length,
+            s: SEANCES_STAGNATION,
+            noms: etat.stagnent.slice(0, 3).map(id => t(EXERCICES[id].nom)).join(', ') + (etat.stagnent.length > 3 ? '…' : '')
+        }));
+    }
+    if (etat.semaines >= SEMAINES_AVANT_RECUP) raisons.push(t("Tu t'entraînes depuis {n} semaines d'affilée.", { n: etat.semaines }));
+    return raisons.join(' ');
+}
+
 function initProgramme() {
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
@@ -605,13 +925,47 @@ function initProgramme() {
     };
     const ecrireStockage = (cle, valeur) => {
         try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* stockage indisponible */ }
-        // Le carnet a changé : copie en ligne automatique (si elle est activée)
-        if (cle === CLE_CARNET) SauvegardeEnLigne.planifier();
+        // Données sauvegardées modifiées : copie en ligne automatique (si elle est activée)
+        if (CLES_SAUVEGARDE.includes(cle)) SauvegardeEnLigne.planifier();
     };
 
-    let jours = Number(params.get('jours'));
-    if (!SPLITS[jours]) jours = Number(lireStockage(CLE_JOURS, 0));
-    if (!SPLITS[jours]) jours = prog.joursDefaut;
+    // « Mon programme » : chaque jour choisi devient une séance « perso-<jour> », ajoutée aux séances
+    // tout prêtes ; la semaine correspondante est SPLITS.perso. Renvoie faux s'il n'y a rien à afficher.
+    const installerPerso = perso => {
+        Object.keys(SEANCES).filter(id => id.startsWith('perso-')).forEach(id => delete SEANCES[id]);
+        delete SPLITS.perso;
+        const joursPerso = JOURS_ENTRAINEMENT.filter(j => perso?.jours?.[j]?.exos?.some(id => EXERCICES[id]));
+        if (!joursPerso.length) return false;
+
+        const semaine = Array(7).fill(null);
+        joursPerso.forEach((j, n) => {
+            const ids = [...new Set(perso.jours[j].exos.filter(id => EXERCICES[id]))];
+            const parDefaut = t('Séance {n}', { n: n + 1 });
+            const nom = (perso.jours[j].nom || '').trim() || parDefaut;
+            SEANCES[`perso-${j}`] = {
+                nom,
+                court: nom.length <= 10 ? nom : parDefaut,
+                focus: PARTIES_CORPS.filter(([, groupes]) => ids.some(id => groupes.includes(EXERCICES[id].groupe))).map(([partie]) => t(partie)).join(', '),
+                exos: ids.map(id => [id, GROUPES_BASE.includes(EXERCICES[id].groupe) ? 'base' : 'iso'])
+            };
+            semaine[j] = `perso-${j}`;
+        });
+        SPLITS.perso = {
+            description: t(joursPerso.length > 1 ? 'Ton programme à toi : {n} séances par semaine.' : 'Ton programme à toi : {n} séance par semaine.', { n: joursPerso.length }),
+            semaine
+        };
+        return true;
+    };
+    let perso = lireStockage(CLE_PERSO, null);
+    installerPerso(perso);
+
+    // « 2 » à « 5 » séances, ou « perso » pour mon programme
+    const valeurJours = v => (v === 'perso' ? (SPLITS.perso ? 'perso' : 0) : SPLITS[Number(v)] ? Number(v) : 0);
+    let jours = valeurJours(params.get('jours')) || valeurJours(lireStockage(CLE_JOURS, 0)) || prog.joursDefaut;
+
+    // Semaine légère : moins de séries et des poids plus légers pendant 7 jours
+    let etatRecup = lireStockage(CLE_RECUP, {});
+    const recupActive = () => Boolean(etatRecuperation({}, etatRecup)?.active);
 
     // { 'masse|full-a|0': 'presse', ... } : exercice choisi à la place de celui d'origine
     const choix = lireStockage(CLE_EXERCICES, {});
@@ -630,10 +984,26 @@ function initProgramme() {
         return { id: valide ? choisi : origine, origine, role };
     });
 
-    const schema = (exo, role, i) => {
+    const schemaNormal = (exo, role, i) => {
         if (exo.duree) return SCHEMAS.duree;
         if (objectif === 'force' && i === 0) return SCHEMAS.force.premier;
         return SCHEMAS[objectif][role];
+    };
+    const schema = (exo, role, i) => {
+        const s = schemaNormal(exo, role, i);
+        return recupActive() ? { ...s, series: seriesRecup(s.series) } : s;
+    };
+    // Poids proposé à partir de la dernière séance (10 % de moins en semaine légère)
+    const poidsPropose = kg => (kg && recupActive() ? poidsRecup(kg) : kg);
+
+    // Échauffement calculé sur le premier exercice avec charge, à partir du poids prévu
+    const echauffement = (liste, kgPrevu) => {
+        const rang = liste.findIndex(e => !EXERCICES[e.id].duree);
+        if (rang === -1) return null;
+        const id = liste[rang].id;
+        const kg = kgPrevu ?? poidsPropose(Math.max(0, ...((carnet[id] || [])[0]?.series || []).map(s => s.kg || 0)));
+        const lourd = objectif === 'force' && rang === 0 && !recupActive();
+        return { rang, id, series: seriesEchauffement(kg, lourd) };
     };
 
     // Exercices de la même famille, sans ceux déjà présents ailleurs dans la séance
@@ -675,10 +1045,13 @@ function initProgramme() {
             const maxDernier = Math.max(0, ...derniere.series.map(x => x.kg || 0));
             const maxPrecedent = precedente ? Math.max(0, ...precedente.series.map(x => x.kg || 0)) : 0;
             const gain = maxPrecedent && maxDernier > maxPrecedent ? ` <span class="carnet__gain">📈 +${formatKg(maxDernier - maxPrecedent)}</span>` : '';
-            const conseil = conseilProgression(exo, s, derniere);
+            // En semaine légère, pas de conseil pour monter : on garde des charges plus faciles
+            const conseil = recupActive()
+                ? (maxDernier ? { type: 'garder', texte: t('🌙 Semaine légère : prends environ {kg} et arrête-toi loin de l\'échec.', { kg: formatKg(poidsRecup(maxDernier)) }) } : null)
+                : conseilProgression(exo, s, derniere);
             historique = `
                 <p class="carnet__dernier">${t('📒 Dernière fois ({date}) :', { date })} <strong dir="ltr">${resume}</strong>${gain}</p>
-                <p class="carnet__conseil carnet__conseil--${conseil.type}">${conseil.texte}</p>`;
+                ${conseil ? `<p class="carnet__conseil carnet__conseil--${conseil.type}">${conseil.texte}</p>` : ''}`;
         }
 
         const lignes = Array.from({ length: s.series }, (_, n) => {
@@ -686,7 +1059,7 @@ function initProgramme() {
             return `
                 <div class="carnet__ligne">
                     <span>${t('Série {n}', { n: n + 1 })}</span>
-                    <label><input type="number" name="kg" inputmode="decimal" min="0" step="0.5" placeholder="${exo.duree ? '—' : '0'}" value="${precedent?.kg || ''}" aria-label="${t('Poids série {n}', { n: n + 1 })}"${exo.duree ? ' disabled' : ''}> kg</label>
+                    <label><input type="number" name="kg" inputmode="decimal" min="0" step="0.5" placeholder="${exo.duree ? '—' : '0'}" value="${poidsPropose(precedent?.kg) || ''}" aria-label="${t('Poids série {n}', { n: n + 1 })}"${exo.duree ? ' disabled' : ''}> kg</label>
                     <label><input type="number" name="reps" inputmode="numeric" min="0" step="1" placeholder="${s.reps.match(/\d+/)[0]}" aria-label="${t(exo.duree ? 'Secondes série {n}' : 'Répétitions série {n}', { n: n + 1 })}"> ${unite}</label>
                 </div>`;
         }).join('');
@@ -725,6 +1098,29 @@ function initProgramme() {
         const seance = SEANCES[seanceActive];
         const liste = exercicesSeance(seanceActive);
         const modifiee = liste.some(e => e.id !== e.origine);
+        const recup = etatRecuperation(carnet, etatRecup);
+        const chauffe = echauffement(liste);
+
+        // Bandeau « semaine légère » : en cours, ou conseillée (stagnation, longue série de semaines)
+        let bandeauRecup = '';
+        if (recup?.active) {
+            bandeauRecup = `
+                <div class="recup recup--active" role="status">
+                    <p><strong>${t('🌙 Semaine légère en cours')}</strong> ${t("jusqu'au {date}", { date: formatDateLongue(recup.fin) })}</p>
+                    <p>${t("Moins de séries et des poids environ 10 % plus légers (déjà pré-remplis). Arrête chaque série loin de l'échec : le but est de récupérer.")}</p>
+                    <button type="button" class="seance__outils" data-recup="arreter">${t('Arrêter la semaine légère')}</button>
+                </div>`;
+        } else if (recup?.conseil) {
+            bandeauRecup = `
+                <div class="recup">
+                    <p><strong>${t('😮‍💨 Une semaine plus légère ?')}</strong> ${raisonRecuperation(recup)}</p>
+                    <p>${t('Une semaine plus facile laisse ton corps récupérer : tu repars ensuite plus fort.')}</p>
+                    <div class="recup__actions">
+                        <button type="button" class="btn btn--primary" data-recup="activer">${t('🌙 Commencer une semaine légère')}</button>
+                        <button type="button" class="btn btn--ghost" data-recup="reporter">${t('Plus tard')}</button>
+                    </div>
+                </div>`;
+        }
 
         $('prog-seance').innerHTML = `
             <article class="seance">
@@ -732,12 +1128,18 @@ function initProgramme() {
                     <h3 class="seance__title">${t(seance.nom)}</h3>
                     <p class="seance__meta">${t('{focus} • {n} exercices • ≈ {d} min', { focus: t(seance.focus), n: liste.length, d: dureeSeance(liste) })}</p>
                 </header>
+                ${bandeauRecup}
                 <div class="seance__guide">
                     <button type="button" class="btn btn--primary" data-guide-start>${seanceSauvegardee() ? t('▶ Reprendre la séance en cours') : t('▶ Commencer la séance guidée')}</button>
                     <p>${t('Facultatif : tu peux aussi suivre simplement la liste ci-dessous.')}</p>
-                    <button type="button" class="seance__outils" data-outils>${t('🧮 Disques & charge max')}</button>
+                    <div class="seance__liens">
+                        <button type="button" class="seance__outils" data-outils>${t('🧮 Disques & charge max')}</button>
+                        ${recup?.active ? '' : `<button type="button" class="seance__outils" data-recup="activer">${t('🌙 Semaine légère')}</button>`}
+                    </div>
                 </div>
-                <p class="seance__note">🔥 <strong>${t('Échauffement :')}</strong> ${t('5 à 10 min de cardio léger, puis 2 séries légères sur le premier exercice.')}</p>
+                <p class="seance__note">🔥 <strong>${t('Échauffement :')}</strong> ${chauffe?.series.length
+                    ? t('5 à 10 min de cardio léger, puis sur « {exo} » : {series}, avant tes vraies séries.', { exo: t(EXERCICES[chauffe.id].nom), series: `<span dir="ltr">${texteEchauffement(chauffe.series)}</span>` })
+                    : `${t('5 à 10 min de cardio léger, puis 2 séries légères sur le premier exercice.')}${chauffe ? ` <span class="seance__astuce">${t('Note ton poids une fois : tes séries d\'échauffement seront calculées pour toi.')}</span>` : ''}`}</p>
                 <ol class="exos">${liste.map((_, i) => carteExercice(liste, i)).join('')}</ol>
                 ${prog.cardio ? `<p class="seance__note seance__note--cardio">🏃 <strong>${t('Pour finir :')}</strong> ${t('15 min de cardio (vélo, tapis ou rameur) à une allure où tu peux encore parler.')}</p>` : ''}
                 ${modifiee ? `<button type="button" class="seance__reset" data-reset>${t('↺ Revenir aux exercices de base')}</button>` : ''}
@@ -766,24 +1168,213 @@ function initProgramme() {
             : `<li class="week__day week__day--rest"><span>${t(NOMS_JOURS[i])}</span><strong>${t('Repos')}</strong></li>`).join('');
         $('prog-onglets').innerHTML = seances.map(id =>
             `<button type="button" class="session-tab" role="tab" data-seance="${id}">${t(SEANCES[id].nom)}</button>`).join('');
+
+        // Aucun chiffre coché quand « Mon programme » est affiché
+        document.querySelectorAll('input[name="jours"]').forEach(radio => { radio.checked = radio.value === String(jours); });
+        $('perso-boutons').innerHTML = jours === 'perso'
+            ? `<button type="button" class="chip-btn chip-btn--actif" data-perso="modifier">${t('✏️ Modifier mon programme')}</button>`
+            : SPLITS.perso
+                ? `<button type="button" class="chip-btn" data-perso="choisir">${t('📋 Mon programme')}</button>`
+                : `<button type="button" class="chip-btn" data-perso="creer">${t('✏️ Créer mon propre programme')}</button>`;
         afficherSeance();
     };
 
     // ---------- Interactions ----------
-    const radioJours = document.querySelector(`input[name="jours"][value="${jours}"]`);
-    if (radioJours) radioJours.checked = true;
+    const changerJours = valeur => {
+        jours = valeur;
+        ecrireStockage(CLE_JOURS, jours);
+        params.set('objectif', objectif);
+        params.set('jours', jours);
+        try {
+            history.replaceState(null, '', `${location.pathname}?${params}`);
+        } catch (e) { /* adresse non modifiable (ex. fichier local) : sans conséquence */ }
+        afficherProgramme();
+    };
 
     document.querySelectorAll('input[name="jours"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            jours = Number(radio.value);
-            ecrireStockage(CLE_JOURS, jours);
-            params.set('objectif', objectif);
-            params.set('jours', jours);
-            try {
-                history.replaceState(null, '', `${location.pathname}?${params}`);
-            } catch (e) { /* adresse non modifiable (ex. fichier local) : sans conséquence */ }
-            afficherProgramme();
-        });
+        radio.addEventListener('change', () => changerJours(Number(radio.value)));
+    });
+
+    // ---------- Mon programme : éditeur ----------
+    // Brouillon : { jours: { 0: { nom, exos: ['squat', ...] }, 2: {...} } } ; rien n'est enregistré avant « Enregistrer »
+    const editeur = $('perso-editeur');
+    let brouillon = null;
+    let joursRetires = {};
+
+    const echapper = texte => String(texte).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    // Liste de choix : tous les exercices, rangés par partie du corps (ceux déjà dans la séance sont grisés)
+    const optionsExercices = dejaPris => PARTIES_CORPS.map(([partie, groupes]) => `
+        <optgroup label="${t(partie)}">${Object.entries(EXERCICES).filter(([, exo]) => groupes.includes(exo.groupe))
+            .map(([id, exo]) => `<option value="${id}"${dejaPris.includes(id) ? ' disabled' : ''}>${t(exo.nom)}</option>`).join('')}</optgroup>`).join('');
+
+    const afficherEditeur = () => {
+        const choisis = JOURS_ENTRAINEMENT.filter(j => brouillon.jours[j]);
+        editeur.innerHTML = `
+            <h2 class="perso__titre">${t('Mon <span class="text-gradient">programme</span>')}</h2>
+            <p class="perso__intro">${t("Choisis tes jours, puis les exercices de chaque séance. Les séries, les répétitions et le repos s'adaptent à ton objectif.")}</p>
+            <div class="perso__jours" role="group" aria-label="${t("Jours d'entraînement")}">
+                ${NOMS_JOURS.map((nom, j) => (JOURS_ENTRAINEMENT.includes(j)
+                    ? `<button type="button" class="perso__jour" data-jour="${j}" aria-pressed="${Boolean(brouillon.jours[j])}">${t(nom)}</button>`
+                    : `<span class="perso__jour perso__jour--repos">${t(nom)}<small>${t('Repos')}</small></span>`)).join('')}
+            </div>
+            ${choisis.map((j, n) => {
+                const jour = brouillon.jours[j];
+                return `
+                <section class="perso__seance">
+                    <div class="perso__seance-tete">
+                        <span class="perso__seance-jour">${t(NOMS_JOURS[j])}</span>
+                        <input type="text" class="perso__nom" data-nom="${j}" value="${echapper(jour.nom)}" placeholder="${t('Séance {n}', { n: n + 1 })}" maxlength="30" aria-label="${t('Nom de la séance du {jour}', { jour: t(NOMS_JOURS[j]) })}">
+                    </div>
+                    ${jour.exos.length ? `<ol class="perso__exos">${jour.exos.map((id, i) => `
+                        <li class="perso__exo">
+                            <span class="perso__num">${i + 1}</span>
+                            <span class="perso__exo-nom">${t(EXERCICES[id].nom)}<small>${t(EXERCICES[id].muscles)}</small></span>
+                            <span class="perso__exo-actions">
+                                <button type="button" data-deplacer="${j}|${i}|-1" aria-label="${t('Monter {nom}', { nom: t(EXERCICES[id].nom) })}"${i === 0 ? ' disabled' : ''}>↑&#xFE0E;</button>
+                                <button type="button" data-deplacer="${j}|${i}|1" aria-label="${t('Descendre {nom}', { nom: t(EXERCICES[id].nom) })}"${i === jour.exos.length - 1 ? ' disabled' : ''}>↓&#xFE0E;</button>
+                                <button type="button" data-retirer="${j}|${i}" aria-label="${t('Retirer {nom}', { nom: t(EXERCICES[id].nom) })}">✕</button>
+                            </span>
+                        </li>`).join('')}</ol>` : `<p class="perso__vide">${t("Aucun exercice pour l'instant.")}</p>`}
+                    ${jour.exos.length < MAX_EXOS_PERSO
+                        ? `<select class="select perso__ajout" data-ajout="${j}" aria-label="${t('Ajouter un exercice le {jour}', { jour: t(NOMS_JOURS[j]) })}"><option value="">${t('+ Ajouter un exercice')}</option>${optionsExercices(jour.exos)}</select>`
+                        : `<p class="perso__vide">${t('{n} exercices maximum par séance.', { n: MAX_EXOS_PERSO })}</p>`}
+                </section>`;
+            }).join('')}
+            ${choisis.length ? '' : `<p class="perso__vide">${t("Touche un jour pour y ajouter une séance.")}</p>`}
+            <p class="perso__erreur" id="perso-erreur" role="alert"></p>
+            <div class="perso__actions">
+                <button type="button" class="btn btn--primary" data-perso="enregistrer">${t('✓ Enregistrer mon programme')}</button>
+                <button type="button" class="btn btn--ghost" data-perso="annuler">${t('Annuler')}</button>
+            </div>
+            ${SPLITS.perso ? `<button type="button" class="seance__reset" data-perso="supprimer">${t('🗑 Supprimer mon programme')}</button>` : ''}`;
+    };
+
+    const ouvrirEditeur = () => {
+        if (SPLITS.perso) {
+            brouillon = JSON.parse(JSON.stringify(perso));
+        } else {
+            // Premier programme : on part de la semaine affichée, qu'il suffit d'ajuster
+            brouillon = { jours: {} };
+            SPLITS[jours].semaine.forEach((id, j) => {
+                if (id && JOURS_ENTRAINEMENT.includes(j)) brouillon.jours[j] = { nom: t(SEANCES[id].nom), exos: exercicesSeance(id).map(e => e.id) };
+            });
+        }
+        joursRetires = {};
+        $('prog-contenu').hidden = true;
+        $('prog-freq').hidden = true;
+        editeur.hidden = false;
+        afficherEditeur();
+        editeur.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const fermerEditeur = () => {
+        editeur.hidden = true;
+        editeur.innerHTML = '';
+        brouillon = null;
+        $('prog-contenu').hidden = false;
+        $('prog-freq').hidden = false;
+    };
+
+    $('perso-boutons').addEventListener('click', e => {
+        const action = e.target.closest('[data-perso]')?.dataset.perso;
+        if (action === 'creer' || action === 'modifier') ouvrirEditeur();
+        if (action === 'choisir') changerJours('perso');
+    });
+
+    editeur.addEventListener('input', e => {
+        const champ = e.target.closest('[data-nom]');
+        if (champ) brouillon.jours[champ.dataset.nom].nom = champ.value;
+    });
+
+    editeur.addEventListener('change', e => {
+        const liste = e.target.closest('[data-ajout]');
+        if (!liste || !EXERCICES[liste.value]) return;
+        const j = liste.dataset.ajout;
+        brouillon.jours[j].exos.push(liste.value);
+        afficherEditeur();
+        editeur.querySelector(`[data-ajout="${j}"]`)?.focus({ preventScroll: true });
+    });
+
+    editeur.addEventListener('click', e => {
+        const jour = e.target.closest('[data-jour]');
+        if (jour) {
+            const j = jour.dataset.jour;
+            if (brouillon.jours[j]) {
+                joursRetires[j] = brouillon.jours[j];
+                delete brouillon.jours[j];
+            } else {
+                brouillon.jours[j] = joursRetires[j] || { nom: '', exos: [] };
+            }
+            afficherEditeur();
+            editeur.querySelector(`[data-jour="${j}"]`).focus({ preventScroll: true });
+            return;
+        }
+
+        const deplacer = e.target.closest('[data-deplacer]');
+        if (deplacer) {
+            const [j, i, sens] = deplacer.dataset.deplacer.split('|');
+            const exos = brouillon.jours[j].exos;
+            const de = Number(i);
+            const vers = de + Number(sens);
+            [exos[de], exos[vers]] = [exos[vers], exos[de]];
+            afficherEditeur();
+            // On garde le doigt sur le même exercice (ou sur l'autre flèche s'il est arrivé au bout)
+            const suivant = editeur.querySelector(`[data-deplacer="${j}|${vers}|${sens}"]:not([disabled])`)
+                || editeur.querySelector(`[data-deplacer="${j}|${vers}|${-Number(sens)}"]`);
+            suivant?.focus({ preventScroll: true });
+            return;
+        }
+
+        const retirer = e.target.closest('[data-retirer]');
+        if (retirer) {
+            const [j, i] = retirer.dataset.retirer.split('|');
+            brouillon.jours[j].exos.splice(Number(i), 1);
+            afficherEditeur();
+            editeur.querySelector(`[data-ajout="${j}"]`)?.focus({ preventScroll: true });
+            return;
+        }
+
+        const action = e.target.closest('[data-perso]')?.dataset.perso;
+        if (action === 'annuler') {
+            fermerEditeur();
+            $('prog-freq').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        if (action === 'enregistrer') {
+            const choisis = JOURS_ENTRAINEMENT.filter(j => brouillon.jours[j]);
+            const erreur = $('perso-erreur');
+            if (!choisis.length) {
+                erreur.textContent = t("Choisis au moins un jour d'entraînement.");
+                return;
+            }
+            const sansExercice = choisis.find(j => !brouillon.jours[j].exos.length);
+            if (sansExercice !== undefined) {
+                erreur.textContent = t('Ajoute au moins un exercice le {jour}.', { jour: t(NOMS_JOURS[sansExercice]) });
+                editeur.querySelector(`[data-ajout="${sansExercice}"]`)?.focus();
+                return;
+            }
+            // Les exercices changés avec « ⇄ » ne correspondent plus aux nouvelles positions
+            Object.keys(choix).filter(cle => cle.includes('|perso-')).forEach(cle => delete choix[cle]);
+            ecrireStockage(CLE_EXERCICES, choix);
+            perso = { jours: Object.fromEntries(choisis.map(j => [j, { nom: brouillon.jours[j].nom.trim(), exos: brouillon.jours[j].exos }])) };
+            ecrireStockage(CLE_PERSO, perso);
+            installerPerso(perso);
+            fermerEditeur();
+            changerJours('perso');
+            $('prog-freq').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            afficherToast(`<span class="toast__icone" aria-hidden="true">✅</span><span class="toast__texte"><strong>${t('Programme enregistré !')}</strong></span>`, 3000);
+        }
+
+        if (action === 'supprimer') {
+            if (!window.confirm(t('Supprimer ton programme ? Ton carnet et tes progrès sont gardés.'))) return;
+            perso = null;
+            try { localStorage.removeItem(CLE_PERSO); } catch (erreur) { /* stockage indisponible */ }
+            SauvegardeEnLigne.planifier();
+            installerPerso(null);
+            fermerEditeur();
+            changerJours(prog.joursDefaut);
+        }
     });
 
     const choisirSeance = (id, defiler) => {
@@ -811,6 +1402,22 @@ function initProgramme() {
 
         if (e.target.closest('[data-outils]')) {
             ouvrirOutils();
+            return;
+        }
+
+        const boutonRecup = e.target.closest('[data-recup]');
+        if (boutonRecup) {
+            const action = boutonRecup.dataset.recup;
+            if (action === 'activer') {
+                if (!window.confirm(t('Commencer une semaine légère ? Pendant 7 jours : moins de séries et des poids environ 10 % plus légers.'))) return;
+                etatRecup = { debut: Date.now() };
+            }
+            // Arrêter = la semaine légère est considérée comme finie maintenant
+            if (action === 'arreter') etatRecup = { debut: Date.now() - DUREE_RECUP };
+            if (action === 'reporter') etatRecup = { ...etatRecup, reporte: Date.now() };
+            ecrireStockage(CLE_RECUP, etatRecup);
+            carnetOuvert = null;
+            afficherSeance();
             return;
         }
 
@@ -854,6 +1461,9 @@ function initProgramme() {
         }
     });
 
+    // Une séance faite en semaine légère est marquée : elle ne compte pas comme une stagnation
+    const nouvelleEntree = (date, series) => (recupActive() ? { date, series, leger: true } : { date, series });
+
     // Enregistrement d'une séance dans le carnet
     $('prog-seance').addEventListener('submit', e => {
         const formulaire = e.target.closest('[data-carnet]');
@@ -874,7 +1484,7 @@ function initProgramme() {
 
         const record = detecterRecord(EXERCICES[exoId], carnet[exoId] || [], [], series);
         if (record) feterRecord(t(EXERCICES[exoId].nom), record);
-        carnet[exoId] = [{ date: new Date().toISOString(), series }, ...(carnet[exoId] || [])].slice(0, MAX_ENTREES_CARNET);
+        carnet[exoId] = [nouvelleEntree(new Date().toISOString(), series), ...(carnet[exoId] || [])].slice(0, MAX_ENTREES_CARNET);
         ecrireStockage(CLE_CARNET, carnet);
         carnetOuvert = null;
         afficherSeance([i]);
@@ -910,7 +1520,7 @@ function initProgramme() {
                 role: e.role,
                 rang,
                 // Poids pré-rempli avec ceux de la dernière fois
-                series: Array.from({ length: s.series }, (_, n) => ({ kg: derniere?.series[n]?.kg || '', reps: '', fait: false }))
+                series: Array.from({ length: s.series }, (_, n) => ({ kg: poidsPropose(derniere?.series[n]?.kg) || '', reps: '', fait: false }))
             };
         })
     });
@@ -943,6 +1553,11 @@ function initProgramme() {
         const media = exo.img
             ? `<img src="images/exercices/${exo.img.includes('.') ? exo.img : `${exo.img}.webp`}" alt="${nom}" width="400" height="300">`
             : `<span class="exo__emoji" aria-hidden="true">${exo.emoji}</span>`;
+        // Échauffement rappelé sur le premier exercice avec charge, tant qu'aucune série n'est faite
+        const chauffe = echauffement(guide.exos, Number(g.series[0].kg) || 0);
+        const blocChauffe = chauffe && chauffe.rang === guide.index && chauffe.series.length && actuelle === 0
+            ? `<p class="guide__echauffement">🔥 <strong>${t('Échauffement :')}</strong> <span dir="ltr">${texteEchauffement(chauffe.series)}</span></p>`
+            : '';
 
         let action;
         if (actuelle !== -1) action = `<button type="button" class="btn btn--primary" data-guide="valider">${t('✓ Série {n} terminée', { n: actuelle + 1 })}</button>`;
@@ -965,6 +1580,7 @@ function initProgramme() {
                     <h2 class="guide__nom">${nom}</h2>
                     <p class="guide__cible">${t('{n} séries', { n: s.series })} × ${t(s.reps)}${exo.duree ? '' : ` ${t('rép.')}`} • ⏱ ${formatRepos(s.repos)}</p>
                     ${derniere ? `<p class="carnet__dernier">${t('📒 Dernière fois ({date}) :', { date: new Date(derniere.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }) })} <strong dir="ltr">${resumeEntree(derniere, unite)}</strong></p>` : ''}
+                    ${blocChauffe}
                     <ol class="guide__series">${g.series.map((serie, n) => `
                         <li class="guide__serie${serie.fait ? ' guide__serie--faite' : ''}${n === actuelle ? ' guide__serie--actuelle' : ''}">
                             <span class="guide__num" aria-label="${t('Série {n}', { n: n + 1 })}">${serie.fait ? '✓' : n + 1}</span>
@@ -994,7 +1610,7 @@ function initProgramme() {
             if (!faites.length) return;
             series += faites.length;
             if (!EXERCICES[g.id].duree) volume += faites.reduce((somme, x) => somme + x.kg * x.reps, 0);
-            carnet[g.id] = [{ date, series: faites }, ...(carnet[g.id] || [])].slice(0, MAX_ENTREES_CARNET);
+            carnet[g.id] = [nouvelleEntree(date, faites), ...(carnet[g.id] || [])].slice(0, MAX_ENTREES_CARNET);
         });
         ecrireStockage(CLE_CARNET, carnet);
         try { localStorage.removeItem(CLE_SEANCE_EN_COURS); } catch (e) { /* stockage indisponible */ }
@@ -1133,7 +1749,7 @@ function initProgramme() {
 const SEMAINES_ACTIVITE = 12;
 const UN_JOUR = 24 * 60 * 60 * 1000;
 const CLE_POIDS = 'ironpulse-poids';
-const CLES_SAUVEGARDE = [CLE_CARNET, CLE_EXERCICES, CLE_JOURS, 'ironpulse-calculateur', CLE_POIDS];
+const CLES_SAUVEGARDE = [CLE_CARNET, CLE_EXERCICES, CLE_JOURS, 'ironpulse-calculateur', CLE_POIDS, CLE_PERSO, CLE_RECUP, CLE_REPAS];
 
 // Date locale « 2026-10-26 » (pas d'UTC : une séance du soir reste sur le bon jour)
 const cleJour = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
