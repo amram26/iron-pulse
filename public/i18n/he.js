@@ -114,3 +114,52 @@ Object.assign(TRADUCTIONS.he, {
     "Pas de connexion : réessaie quand tu as du réseau.": "אין חיבור: נסו שוב כשתהיה רשת."
 });
 Object.assign(TRADUCTIONS.he, { "{n} exercice": "תרגיל {n}", "{n} exercices": "{n} תרגילים", "{n} série": "סט {n}", "{n} exercice noté": "תרגיל {n} נרשם" });
+
+// Records, outils de charge, poids du corps
+Object.assign(TRADUCTIONS.he, {
+    "Nouveau record !": "שיא חדש!",
+    "🏆 {n} records battus !": "🏆 נשברו {n} שיאים!",
+    "🏆 1 record battu !": "🏆 נשבר שיא אחד!",
+    "🧮 Outils de charge": "🧮 כלי משקל",
+    "🧮 Disques & charge max": "🧮 משקולות ומקסימום",
+    "🧮 Estimer ma charge max": "🧮 הערכת המקסימום שלי",
+    "Disques": "משקולות",
+    "Charge max": "מקסימום",
+    "Charge totale": "משקל כולל",
+    "Barre": "מוט",
+    "Barre olympique (20 kg)": "מוט אולימפי (20 ק״ג)",
+    "Barre femme (15 kg)": "מוט נשים (15 ק״ג)",
+    "Barre EZ (10 kg)": "מוט EZ (10 ק״ג)",
+    "Machine à disques (sans barre)": "מכונה עם משקולות (בלי מוט)",
+    "Poids soulevé": "משקל שהורם",
+    "Répétitions": "חזרות",
+    "Estimation (formule d'Epley), fiable jusqu'à 10–12 répétitions. Ne teste jamais ta charge max seul : demande à quelqu'un de te surveiller.": "הערכה (נוסחת אפלי), אמינה עד 10–12 חזרות. אל תבדקו את המקסימום לבד: בקשו ממישהו לשמור עליכם.",
+    "Tape la charge totale que tu veux soulever.": "הקלידו את המשקל הכולל שתרצו להרים.",
+    "La charge est plus légère que la barre ({kg}).": "המשקל קל יותר מהמוט ({kg}).",
+    "De chaque côté : {liste} kg": "בכל צד: {liste} ק״ג",
+    "Rien à ajouter : juste la barre.": "אין מה להוסיף: רק המוט.",
+    "Au plus près : {kg} (impossible exactement avec ces disques).": "הכי קרוב: {kg} (אי אפשר בדיוק עם המשקולות האלה).",
+    "Tape un poids et un nombre de répétitions que tu as réussis.": "הקלידו משקל ומספר חזרות שהצלחתם לבצע.",
+    "Charge max estimée": "מקסימום משוער",
+    "Au-delà de 12 répétitions, l'estimation est moins fiable.": "מעל 12 חזרות ההערכה פחות אמינה.",
+    "Charge conseillée": "משקל מומלץ",
+    "{n} rép.": "{n} חזרות",
+    "Poids du corps": "משקל גוף",
+    "Pèse-toi le matin, à jeun, 1 à 2 fois par semaine.": "שקלו את עצמכם בבוקר, לפני האוכל, 1–2 פעמים בשבוע.",
+    "Ma pesée du jour": "השקילה של היום",
+    "Enregistrer": "שמירה",
+    "Encore une pesée pour voir ta courbe.": "עוד שקילה אחת והגרף שלכם יופיע.",
+    "Voir toutes les pesées": "כל השקילות",
+    "Poids": "משקל",
+    "Supprimer": "מחיקה",
+    "Chiffres du poids": "נתוני המשקל",
+    "Poids actuel": "משקל נוכחי",
+    "Rythme": "קצב",
+    "{kg} / sem.": "{kg} לשבוע",
+    "sur les dernières semaines": "בשבועות האחרונים",
+    "Supprimer la pesée du {date}": "מחיקת השקילה מ-{date}",
+    "Tape un poids entre 30 et 300 kg.": "הקלידו משקל בין 30 ל-300 ק״ג.",
+    "Pesée enregistrée ✓": "השקילה נשמרה ✓",
+    "Supprimer cette pesée ?": "למחוק את השקילה?"
+});
+Object.assign(TRADUCTIONS.he, { "par semaine": "לשבוע" });

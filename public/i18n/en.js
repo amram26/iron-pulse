@@ -114,3 +114,52 @@ Object.assign(TRADUCTIONS.en, {
     "Pas de connexion : réessaie quand tu as du réseau.": "No connection: try again when you're online."
 });
 Object.assign(TRADUCTIONS.en, { "{n} exercice": "{n} exercise", "{n} exercices": "{n} exercises", "{n} série": "{n} set", "{n} exercice noté": "{n} exercise logged" });
+
+// Records, outils de charge, poids du corps
+Object.assign(TRADUCTIONS.en, {
+    "Nouveau record !": "New record!",
+    "🏆 {n} records battus !": "🏆 {n} records broken!",
+    "🏆 1 record battu !": "🏆 1 record broken!",
+    "🧮 Outils de charge": "🧮 Load tools",
+    "🧮 Disques & charge max": "🧮 Plates & max load",
+    "🧮 Estimer ma charge max": "🧮 Estimate my max load",
+    "Disques": "Plates",
+    "Charge max": "Max load",
+    "Charge totale": "Total weight",
+    "Barre": "Bar",
+    "Barre olympique (20 kg)": "Olympic bar (20 kg)",
+    "Barre femme (15 kg)": "Women's bar (15 kg)",
+    "Barre EZ (10 kg)": "EZ bar (10 kg)",
+    "Machine à disques (sans barre)": "Plate-loaded machine (no bar)",
+    "Poids soulevé": "Weight lifted",
+    "Répétitions": "Reps",
+    "Estimation (formule d'Epley), fiable jusqu'à 10–12 répétitions. Ne teste jamais ta charge max seul : demande à quelqu'un de te surveiller.": "Estimate (Epley formula), reliable up to 10–12 reps. Never test your max alone: ask someone to spot you.",
+    "Tape la charge totale que tu veux soulever.": "Enter the total weight you want to lift.",
+    "La charge est plus légère que la barre ({kg}).": "The weight is lighter than the bar ({kg}).",
+    "De chaque côté : {liste} kg": "On each side: {liste} kg",
+    "Rien à ajouter : juste la barre.": "Nothing to add: just the bar.",
+    "Au plus près : {kg} (impossible exactement avec ces disques).": "Closest: {kg} (not possible exactly with these plates).",
+    "Tape un poids et un nombre de répétitions que tu as réussis.": "Enter a weight and a number of reps you completed.",
+    "Charge max estimée": "Estimated max load",
+    "Au-delà de 12 répétitions, l'estimation est moins fiable.": "Above 12 reps, the estimate is less reliable.",
+    "Charge conseillée": "Suggested weight",
+    "{n} rép.": "{n} reps",
+    "Poids du corps": "Body weight",
+    "Pèse-toi le matin, à jeun, 1 à 2 fois par semaine.": "Weigh yourself in the morning, before eating, 1 to 2 times a week.",
+    "Ma pesée du jour": "Today's weigh-in",
+    "Enregistrer": "Save",
+    "Encore une pesée pour voir ta courbe.": "One more weigh-in and your chart will appear.",
+    "Voir toutes les pesées": "See all weigh-ins",
+    "Poids": "Weight",
+    "Supprimer": "Delete",
+    "Chiffres du poids": "Weight stats",
+    "Poids actuel": "Current weight",
+    "Rythme": "Pace",
+    "{kg} / sem.": "{kg} / week",
+    "sur les dernières semaines": "over recent weeks",
+    "Supprimer la pesée du {date}": "Delete the weigh-in from {date}",
+    "Tape un poids entre 30 et 300 kg.": "Enter a weight between 30 and 300 kg.",
+    "Pesée enregistrée ✓": "Weigh-in saved ✓",
+    "Supprimer cette pesée ?": "Delete this weigh-in?"
+});
+Object.assign(TRADUCTIONS.en, { "par semaine": "per week" });

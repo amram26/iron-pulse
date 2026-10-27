@@ -112,6 +112,7 @@
                         <label class="field__label" for="choix-exercice">Exercice</label>
                         <select class="select" id="choix-exercice"></select>
                         <ul class="tuiles tuiles--3" id="tuiles-exercice" aria-label="Chiffres de l'exercice"></ul>
+                        <button type="button" class="chip-btn progres__outils" id="outils-exercice" hidden>🧮 Estimer ma charge max</button>
                         <div class="courbe" id="courbe" tabindex="0"></div>
                         <p class="courbe__note" id="courbe-note" hidden>Encore une séance de cet exercice pour voir ta courbe.</p>
                         <details class="detail">
@@ -134,6 +135,41 @@
                         <ul class="historique" id="historique"></ul>
                     </article>
                 </div>
+
+                <!-- Poids du corps : visible même sans séance notée -->
+                <article class="bloc" id="poids">
+                    <header class="bloc__tete">
+                        <h2 class="bloc__titre">Poids du corps</h2>
+                        <p class="bloc__sous">Pèse-toi le matin, à jeun, 1 à 2 fois par semaine.</p>
+                    </header>
+                    <form class="pesee" id="pesee-form" novalidate>
+                        <label class="field__label" for="pesee-kg">Ma pesée du jour</label>
+                        <div class="pesee__ligne">
+                            <div class="input-unit">
+                                <input type="number" id="pesee-kg" inputmode="decimal" min="30" max="300" step="0.1" placeholder="75">
+                                <span>kg</span>
+                            </div>
+                            <button type="submit" class="btn btn--primary">Enregistrer</button>
+                        </div>
+                        <p class="donnees__message" id="pesee-message" role="status" aria-live="polite"></p>
+                    </form>
+                    <div id="poids-contenu" hidden>
+                        <ul class="tuiles tuiles--3" id="tuiles-poids" aria-label="Chiffres du poids"></ul>
+                        <div class="courbe" id="courbe-poids" tabindex="0"></div>
+                        <p class="courbe__note" id="poids-note" hidden>Encore une pesée pour voir ta courbe.</p>
+                        <details class="detail">
+                            <summary>Voir toutes les pesées</summary>
+                            <div class="detail__defile">
+                                <table class="detail__table">
+                                    <thead>
+                                        <tr><th scope="col">Date</th><th scope="col">Poids</th><th scope="col"><span class="visuellement-cache">Supprimer</span></th></tr>
+                                    </thead>
+                                    <tbody id="poids-lignes"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                </article>
 
                 <!-- Sauvegarde : en ligne (chiffrée, automatique) ou par fichier -->
                 <article class="bloc bloc--donnees" id="sauvegarde">

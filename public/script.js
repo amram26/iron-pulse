@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ---------- Page « Mes progrès » ---------- */
     if (document.getElementById('progres') && typeof EXERCICES !== 'undefined') initProgres();
+    initPoids();
     initSauvegardeEnLigne();
 
     /* ---------- Sauvegarde en ligne : copie en attente envoyée dès que possible ---------- */
@@ -734,6 +735,7 @@ function initProgramme() {
                 <div class="seance__guide">
                     <button type="button" class="btn btn--primary" data-guide-start>${seanceSauvegardee() ? t('▶ Reprendre la séance en cours') : t('▶ Commencer la séance guidée')}</button>
                     <p>${t('Facultatif : tu peux aussi suivre simplement la liste ci-dessous.')}</p>
+                    <button type="button" class="seance__outils" data-outils>${t('🧮 Disques & charge max')}</button>
                 </div>
                 <p class="seance__note">🔥 <strong>${t('Échauffement :')}</strong> ${t('5 à 10 min de cardio léger, puis 2 séries légères sur le premier exercice.')}</p>
                 <ol class="exos">${liste.map((_, i) => carteExercice(liste, i)).join('')}</ol>
@@ -807,6 +809,11 @@ function initProgramme() {
             return;
         }
 
+        if (e.target.closest('[data-outils]')) {
+            ouvrirOutils();
+            return;
+        }
+
         const boutonRepos = e.target.closest('[data-repos]');
         if (boutonRepos) {
             minuteur.lancer(Number(boutonRepos.dataset.repos), boutonRepos.dataset.nom);
@@ -865,6 +872,8 @@ function initProgramme() {
             return;
         }
 
+        const record = detecterRecord(EXERCICES[exoId], carnet[exoId] || [], [], series);
+        if (record) feterRecord(t(EXERCICES[exoId].nom), record);
         carnet[exoId] = [{ date: new Date().toISOString(), series }, ...(carnet[exoId] || [])].slice(0, MAX_ENTREES_CARNET);
         ecrireStockage(CLE_CARNET, carnet);
         carnetOuvert = null;
@@ -964,6 +973,7 @@ function initProgramme() {
                         </li>`).join('')}
                     </ol>
                     ${actuelle === -1 ? `<p class="guide__bravo">${t('Bravo, exercice terminé ! 💪')}</p>` : ''}
+                    ${exo.duree ? '' : `<button type="button" class="chip-btn guide__outils" data-guide="outils">${t('🧮 Disques & charge max')}</button>`}
                     <details class="guide__conseil"><summary>${t('💡 Conseil')}</summary><p>${t(exo.conseil)}</p></details>
                 </div>
             </div>
@@ -1003,6 +1013,11 @@ function initProgramme() {
                     <li><strong>${bilan.series}</strong><span>${t('séries')}</span></li>
                     <li><strong>${formatNombre(bilan.volume)}</strong><span>${t('kg soulevés')}</span></li>
                 </ul>
+                ${guide.records?.length ? `
+                <div class="guide__records">
+                    <strong>${t(guide.records.length > 1 ? '🏆 {n} records battus !' : '🏆 1 record battu !', { n: guide.records.length })}</strong>
+                    <ul>${guide.records.map(r => `<li>${t(EXERCICES[r.id].nom)} : <b dir="ltr">${r.texte}</b></li>`).join('')}</ul>
+                </div>` : ''}
                 <p class="guide__sauve">${t('Tout est enregistré dans ton carnet.')}</p>
                 <button type="button" class="btn btn--primary" data-guide="fermer">${t('Fermer')}</button>
                 <a href="progres.html" class="btn btn--ghost">${t('📈 Voir mes progrès')}</a>
@@ -1044,7 +1059,10 @@ function initProgramme() {
     guideEl.addEventListener('input', e => {
         const champ = e.target.closest('[data-champ]');
         if (!champ || !guide) return;
-        guide.exos[guide.index].series[Number(champ.dataset.serie)][champ.dataset.champ] = champ.value;
+        const serie = guide.exos[guide.index].series[Number(champ.dataset.serie)];
+        serie[champ.dataset.champ] = champ.value;
+        // Un poids tapé à la main n'est plus modifié automatiquement
+        if (champ.dataset.champ === 'kg') serie.kgModifie = true;
         sauverGuide();
     });
 
@@ -1074,11 +1092,25 @@ function initProgramme() {
             const serie = g.series[n];
             serie.kg = Number(serie.kg) || 0;
             serie.reps = Number(serie.reps) || repsParDefaut(g, n, s);
+            // Record battu ? (par rapport au carnet ET aux séries déjà faites aujourd'hui)
+            const record = detecterRecord(exo, carnet[g.id] || [], g.series.filter(x => x.fait), [serie]);
+            if (record) {
+                guide.records = (guide.records || []).filter(r => r.id !== g.id);
+                guide.records.push({ id: g.id, texte: record.texte });
+                feterRecord(t(exo.nom), record);
+            }
             serie.fait = true;
-            // Série suivante : on reprend le même poids si rien n'a été saisi
-            if (g.series[n + 1] && !g.series[n + 1].kg && serie.kg) g.series[n + 1].kg = serie.kg;
+            // Séries suivantes : elles prennent ce poids, sauf si on les a déjà modifiées à la main
+            if (serie.kg) g.series.slice(n + 1).forEach(x => { if (!x.fait && !x.kgModifie) x.kg = serie.kg; });
             const derniereSerieDeLaSeance = guide.index === guide.exos.length - 1 && n === g.series.length - 1;
             if (!derniereSerieDeLaSeance) minuteur.lancer(s.repos, t(exo.nom));
+        }
+
+        if (action === 'outils') {
+            const g = guide.exos[guide.index];
+            const s = schema(EXERCICES[g.id], g.role, g.rang);
+            const n = Math.max(0, g.series.findIndex(x => !x.fait));
+            return ouvrirOutils({ kg: Number(g.series[n].kg) || '', reps: Number(g.series[n].reps) || repsParDefaut(g, n, s) });
         }
 
         if (action === 'terminer') return afficherBilan(enregistrerGuide());
@@ -1100,7 +1132,8 @@ function initProgramme() {
 
 const SEMAINES_ACTIVITE = 12;
 const UN_JOUR = 24 * 60 * 60 * 1000;
-const CLES_SAUVEGARDE = [CLE_CARNET, CLE_EXERCICES, CLE_JOURS, 'ironpulse-calculateur'];
+const CLE_POIDS = 'ironpulse-poids';
+const CLES_SAUVEGARDE = [CLE_CARNET, CLE_EXERCICES, CLE_JOURS, 'ironpulse-calculateur', CLE_POIDS];
 
 // Date locale « 2026-10-26 » (pas d'UTC : une séance du soir reste sur le bon jour)
 const cleJour = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -1308,6 +1341,14 @@ function initProgres() {
         dessiner();
         courbe._redessiner = dessiner;
         $('courbe-note').hidden = points.length > 1;
+
+        // Estimation de la charge max à partir de la meilleure série du record (exercices avec charge)
+        const boutonOutils = $('outils-exercice');
+        boutonOutils.hidden = !avecPoids;
+        if (avecPoids) {
+            const meilleure = liste.flatMap(e => e.series).filter(s => s.kg === record.valeur).sort((a, b) => b.reps - a.reps)[0];
+            boutonOutils.onclick = () => ouvrirOutils({ kg: meilleure.kg, reps: meilleure.reps, onglet: 'max' });
+        }
 
         // Tableau : la version texte de la courbe, de la plus récente à la plus ancienne
         $('detail-lignes').innerHTML = [...points].reverse().map(p =>
@@ -1687,6 +1728,336 @@ function initSauvegardeEnLigne() {
     });
 
     document.addEventListener(EVENEMENT_SAUVEGARDE, afficher);
+    afficher();
+}
+
+/* ==========================================================
+   RECORDS — fêter quand on bat son meilleur résultat
+   Valeur suivie : le poids si l'exercice se fait avec charge,
+   sinon les répétitions (poids du corps) ou les secondes (gainage).
+   Rien n'est fêté la première fois qu'on fait un exercice.
+   ========================================================== */
+
+function detecterRecord(exo, historique, dejaFaites, nouvelles) {
+    if (!historique.length) return null;
+    const toutes = [...historique.flatMap(e => e.series), ...dejaFaites, ...nouvelles];
+    const avecPoids = !exo.duree && toutes.some(s => Number(s.kg) > 0);
+    const valeur = s => Number(avecPoids ? s.kg : s.reps) || 0;
+    const ancien = Math.max(0, ...historique.flatMap(e => e.series).map(valeur), ...dejaFaites.map(valeur));
+    const nouveau = Math.max(0, ...nouvelles.map(valeur));
+    if (nouveau <= ancien) return null;
+    const texte = avecPoids ? formatKg(nouveau) : exo.duree ? t('{n} s', { n: nouveau }) : `${nouveau} ${t('rép.')}`;
+    return { valeur: nouveau, texte, gain: avecPoids ? formatKg(nouveau - ancien) : null };
+}
+
+// Message éphémère en haut de l'écran (records, confirmations)
+function afficherToast(html, duree = 4500) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = html;
+    toast.classList.remove('toast--visible');
+    void toast.offsetWidth;
+    toast.classList.add('toast--visible');
+    clearTimeout(toast._minuterie);
+    toast._minuterie = setTimeout(() => toast.classList.remove('toast--visible'), duree);
+}
+
+function feterRecord(nomExercice, record) {
+    const confettis = Array.from({ length: 14 }, (_, i) => `<span class="toast__confetti" style="--angle: ${i * 26}deg; --delai: ${(i % 4) * 40}ms"></span>`).join('');
+    afficherToast(`
+        <span class="toast__icone" aria-hidden="true">🏆</span>
+        <span class="toast__texte">
+            <strong>${t('Nouveau record !')}</strong>
+            <span>${nomExercice} : ${record.texte}${record.gain ? ` (+${record.gain})` : ''}</span>
+        </span>
+        <span class="toast__confettis" aria-hidden="true">${confettis}</span>`);
+    if (navigator.vibrate) navigator.vibrate([80, 60, 160]);
+}
+
+/* ==========================================================
+   OUTILS DE CHARGE — disques à mettre sur la barre et
+   estimation de la charge maximale (formule d'Epley)
+   ========================================================== */
+
+const CLE_BARRE = 'ironpulse-barre';
+const BARRES = [[20, 'Barre olympique (20 kg)'], [15, 'Barre femme (15 kg)'], [10, 'Barre EZ (10 kg)'], [0, 'Machine à disques (sans barre)']];
+const DISQUES = [25, 20, 15, 10, 5, 2.5, 1.25];
+// Couleurs et tailles des disques de compétition, pour que le dessin ressemble à la vraie barre
+const STYLE_DISQUES = {
+    25: ['#e5383b', 100], 20: ['#3a86ff', 100], 15: ['#ffbe0b', 86], 10: ['#2bb673', 72],
+    5: ['#e4e4e7', 56], 2.5: ['#52525b', 44], 1.25: ['#a1a1aa', 36]
+};
+const REPS_REFERENCE = [1, 3, 5, 8, 10, 12];
+
+// Disques par côté, du plus lourd au plus léger ; « exact » = faux si la charge n'est pas réalisable
+function calculerDisques(total, barre) {
+    const parCote = (total - barre) / 2;
+    if (!(parCote >= 0)) return null;
+    const disques = [];
+    let reste = Math.round(parCote * 100) / 100;
+    DISQUES.forEach(disque => {
+        while (reste + 1e-9 >= disque) {
+            disques.push(disque);
+            reste = Math.round((reste - disque) * 100) / 100;
+        }
+    });
+    return { disques, charge: barre + 2 * disques.reduce((a, b) => a + b, 0), exact: reste < 0.01 };
+}
+
+const chargeMaxEstimee = (kg, reps) => (reps <= 1 ? kg : kg * (1 + reps / 30));
+const arrondir25 = kg => Math.round(kg / 2.5) * 2.5;
+
+function ouvrirOutils({ kg = '', reps = '', onglet = 'disques' } = {}) {
+    let outil = document.getElementById('outil');
+    if (!outil) {
+        outil = document.createElement('div');
+        outil.id = 'outil';
+        outil.className = 'outil';
+        outil.hidden = true;
+        outil.setAttribute('role', 'dialog');
+        outil.setAttribute('aria-modal', 'true');
+        outil.setAttribute('aria-labelledby', 'outil-titre');
+        let barreChoisie = 20;
+        try { barreChoisie = Number(localStorage.getItem(CLE_BARRE) ?? 20); } catch (e) { /* stockage indisponible */ }
+        outil.innerHTML = `
+            <div class="outil__fond" data-outil="fermer"></div>
+            <div class="outil__panneau">
+                <div class="outil__tete">
+                    <h2 class="outil__titre" id="outil-titre">${t('🧮 Outils de charge')}</h2>
+                    <button type="button" class="guide__fermer" data-outil="fermer" aria-label="${t('Fermer')}">✕</button>
+                </div>
+                <div class="segmented outil__onglets">
+                    <input type="radio" name="outil-onglet" id="outil-disques" value="disques">
+                    <label for="outil-disques">${t('Disques')}</label>
+                    <input type="radio" name="outil-onglet" id="outil-max" value="max">
+                    <label for="outil-max">${t('Charge max')}</label>
+                </div>
+
+                <section class="outil__section" data-section="disques">
+                    <div class="field-row field-row--2">
+                        <div class="field">
+                            <label class="field__label" for="outil-total">${t('Charge totale')}</label>
+                            <div class="input-unit"><input type="number" id="outil-total" inputmode="decimal" min="0" max="500" step="0.5" placeholder="80"><span>kg</span></div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="outil-barre">${t('Barre')}</label>
+                            <select class="select" id="outil-barre">${BARRES.map(([poids, nom]) => `<option value="${poids}"${poids === barreChoisie ? ' selected' : ''}>${t(nom)}</option>`).join('')}</select>
+                        </div>
+                    </div>
+                    <div class="barre-dessin" id="outil-dessin" aria-hidden="true"></div>
+                    <p class="outil__resultat" id="outil-resultat-disques"></p>
+                </section>
+
+                <section class="outil__section" data-section="max" hidden>
+                    <div class="field-row field-row--2">
+                        <div class="field">
+                            <label class="field__label" for="outil-poids">${t('Poids soulevé')}</label>
+                            <div class="input-unit"><input type="number" id="outil-poids" inputmode="decimal" min="0" max="500" step="0.5" placeholder="80"><span>kg</span></div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="outil-reps">${t('Répétitions')}</label>
+                            <div class="input-unit"><input type="number" id="outil-reps" inputmode="numeric" min="1" max="30" step="1" placeholder="5"><span>${t('rép.')}</span></div>
+                        </div>
+                    </div>
+                    <div id="outil-resultat-max"></div>
+                    <p class="outil__note">${t("Estimation (formule d'Epley), fiable jusqu'à 10–12 répétitions. Ne teste jamais ta charge max seul : demande à quelqu'un de te surveiller.")}</p>
+                </section>
+            </div>`;
+        document.body.appendChild(outil);
+
+        const $o = id => outil.querySelector(`#${id}`);
+
+        const dessinerDisques = () => {
+            const total = parseFloat($o('outil-total').value);
+            const barre = Number($o('outil-barre').value);
+            const resultat = $o('outil-resultat-disques');
+            const dessin = $o('outil-dessin');
+            if (!(total > 0)) {
+                dessin.innerHTML = '';
+                resultat.textContent = t('Tape la charge totale que tu veux soulever.');
+                return;
+            }
+            const calcul = calculerDisques(total, barre);
+            if (!calcul) {
+                dessin.innerHTML = '';
+                resultat.textContent = t('La charge est plus légère que la barre ({kg}).', { kg: formatKg(barre) });
+                return;
+            }
+            dessin.innerHTML = `${barre ? '<span class="barre-dessin__barre"></span>' : ''}<span class="barre-dessin__butee"></span>${calcul.disques.map(d => {
+                const [couleur, hauteur] = STYLE_DISQUES[d];
+                return `<span class="barre-dessin__disque" style="--couleur: ${couleur}; --hauteur: ${hauteur}%">${d.toLocaleString(LOCALE)}</span>`;
+            }).join('')}<span class="barre-dessin__manchon"></span>`;
+            const liste = calcul.disques.map(d => d.toLocaleString(LOCALE)).join(' + ');
+            let texte = calcul.disques.length
+                ? t('De chaque côté : {liste} kg', { liste })
+                : t('Rien à ajouter : juste la barre.');
+            if (!calcul.exact) texte += ` ${t('Au plus près : {kg} (impossible exactement avec ces disques).', { kg: formatKg(calcul.charge) })}`;
+            resultat.textContent = texte;
+        };
+
+        const calculerMax = () => {
+            const poids = parseFloat($o('outil-poids').value);
+            const reps = parseInt($o('outil-reps').value, 10);
+            const zone = $o('outil-resultat-max');
+            if (!(poids > 0) || !(reps > 0)) {
+                zone.innerHTML = `<p class="outil__resultat">${t('Tape un poids et un nombre de répétitions que tu as réussis.')}</p>`;
+                return;
+            }
+            const max = chargeMaxEstimee(poids, reps);
+            zone.innerHTML = `
+                <div class="outil__max">
+                    <span>${t('Charge max estimée')}</span>
+                    <strong>≈ ${formatKg(arrondir25(max))}</strong>
+                    ${reps > 12 ? `<small>${t('Au-delà de 12 répétitions, l\'estimation est moins fiable.')}</small>` : ''}
+                </div>
+                <table class="detail__table outil__table">
+                    <thead><tr><th scope="col">${t('Répétitions')}</th><th scope="col">${t('Charge conseillée')}</th></tr></thead>
+                    <tbody>${REPS_REFERENCE.map(n => `<tr><td>${t('{n} rép.', { n })}</td><td>${formatKg(arrondir25(max / (1 + (n > 1 ? n : 0) / 30)))}</td></tr>`).join('')}</tbody>
+                </table>`;
+        };
+
+        const choisirOnglet = nom => {
+            outil.querySelector(`input[name="outil-onglet"][value="${nom}"]`).checked = true;
+            outil.querySelectorAll('[data-section]').forEach(section => { section.hidden = section.dataset.section !== nom; });
+        };
+
+        const fermer = () => {
+            outil.hidden = true;
+            document.body.classList.remove('outil-ouvert');
+            outil._retour?.focus();
+        };
+
+        outil.addEventListener('click', e => { if (e.target.closest('[data-outil="fermer"]')) fermer(); });
+        outil.addEventListener('keydown', e => { if (e.key === 'Escape') fermer(); });
+        outil.addEventListener('change', e => {
+            if (e.target.name === 'outil-onglet') choisirOnglet(e.target.value);
+            if (e.target.id === 'outil-barre') {
+                try { localStorage.setItem(CLE_BARRE, e.target.value); } catch (erreur) { /* stockage indisponible */ }
+                dessinerDisques();
+            }
+        });
+        outil.addEventListener('input', e => {
+            if (e.target.id === 'outil-total') dessinerDisques();
+            if (e.target.id === 'outil-poids' || e.target.id === 'outil-reps') calculerMax();
+        });
+
+        outil._preparer = (valeurs) => {
+            $o('outil-total').value = valeurs.kg || '';
+            $o('outil-poids').value = valeurs.kg || '';
+            $o('outil-reps').value = valeurs.reps || '';
+            choisirOnglet(valeurs.onglet);
+            dessinerDisques();
+            calculerMax();
+        };
+    }
+
+    outil._retour = document.activeElement;
+    outil._preparer({ kg, reps, onglet });
+    outil.hidden = false;
+    document.body.classList.add('outil-ouvert');
+    outil.querySelector(onglet === 'max' ? '#outil-poids' : '#outil-total').focus({ preventScroll: true });
+}
+
+/* ==========================================================
+   POIDS DU CORPS (page Progrès) — une pesée par jour au plus
+   ========================================================== */
+
+function initPoids() {
+    // On teste le formulaire de pesée (l'accueil a aussi un champ « poids », celui du calculateur)
+    if (!document.getElementById('pesee-form')) return;
+    const bloc = document.getElementById('poids');
+    const $ = id => document.getElementById(id);
+
+    const lire = () => {
+        try { return (JSON.parse(localStorage.getItem(CLE_POIDS)) || []).filter(p => p && p.kg > 0 && p.date); } catch (e) { return []; }
+    };
+    const ecrire = pesees => {
+        try { localStorage.setItem(CLE_POIDS, JSON.stringify(pesees)); } catch (e) { /* stockage indisponible */ }
+        SauvegardeEnLigne.planifier();
+    };
+
+    const afficher = () => {
+        const pesees = lire().sort((a, b) => a.date.localeCompare(b.date));
+        $('poids-contenu').hidden = !pesees.length;
+        if (!pesees.length) return;
+
+        const derniere = pesees[pesees.length - 1];
+        const premiere = pesees[0];
+        const ecart = derniere.kg - premiere.kg;
+        const signe = v => (v > 0 ? `+${formatKg(Math.round(v * 10) / 10)}` : v < 0 ? `−${formatKg(Math.round(-v * 10) / 10)}` : formatKg(0));
+        // Comparaison avec la pesée la plus proche d'il y a 4 semaines (au moins 3 semaines d'écart)
+        const ilYa4Semaines = new Date(derniere.date).getTime() - 28 * UN_JOUR;
+        const reference = [...pesees].reverse().find(p => new Date(p.date).getTime() <= ilYa4Semaines + 7 * UN_JOUR && p !== derniere);
+        const semaines = reference ? (new Date(derniere.date) - new Date(reference.date)) / (7 * UN_JOUR) : 0;
+
+        $('tuiles-poids').innerHTML = [
+            [t('Poids actuel'), formatKg(derniere.kg), formatDateCourte(new Date(derniere.date))],
+            [t('Depuis le début'), pesees.length > 1 ? signe(ecart) : '—', pesees.length > 1 ? t('depuis le {date}', { date: formatDateCourte(new Date(premiere.date)) }) : ''],
+            [t('Rythme'), reference && semaines >= 1 ? signe((derniere.kg - reference.kg) / semaines) : '—', t('par semaine')]
+        ].map(([libelle, valeur, note]) => `<li class="tuile"><span class="tuile__libelle">${libelle}</span><strong class="tuile__valeur" dir="ltr">${valeur}</strong>${note ? `<span class="tuile__note">${note}</span>` : ''}</li>`).join('');
+
+        const points = pesees.map(p => ({ date: new Date(p.date), valeur: p.kg, detail: '' }));
+        const courbe = $('courbe-poids');
+        courbe.setAttribute('role', 'img');
+        courbe.setAttribute('aria-label', `${t('Poids du corps')} : ${formatKg(derniere.kg)}`);
+        tracerCourbe(courbe, points, formatKg);
+        $('poids-note').hidden = pesees.length > 1;
+
+        $('poids-lignes').innerHTML = [...pesees].reverse().map(p => `
+            <tr>
+                <td>${formatDateLongue(new Date(p.date))}</td>
+                <td>${formatKg(p.kg)}</td>
+                <td><button type="button" class="detail__supprimer" data-supprimer="${p.date}" aria-label="${t('Supprimer la pesée du {date}', { date: formatDateCourte(new Date(p.date)) })}">✕</button></td>
+            </tr>`).join('');
+    };
+
+    $('pesee-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const kg = Math.round(parseFloat($('pesee-kg').value) * 10) / 10;
+        if (!(kg >= 30 && kg <= 300)) {
+            $('pesee-message').textContent = t('Tape un poids entre 30 et 300 kg.');
+            return;
+        }
+        // Une seule pesée par jour : celle du jour remplace la précédente
+        const aujourdhui = cleJour(new Date());
+        const pesees = lire().filter(p => cleJour(new Date(p.date)) !== aujourdhui);
+        pesees.push({ date: new Date().toISOString(), kg });
+        ecrire(pesees);
+
+        // Le calculateur de calories utilisera ce poids
+        try {
+            const calcul = JSON.parse(localStorage.getItem('ironpulse-calculateur'));
+            if (calcul) localStorage.setItem('ironpulse-calculateur', JSON.stringify({ ...calcul, poids: kg }));
+        } catch (erreur) { /* stockage indisponible */ }
+
+        $('pesee-kg').value = '';
+        $('pesee-message').textContent = t('Pesée enregistrée ✓');
+        afficher();
+    });
+
+    bloc.addEventListener('click', e => {
+        const bouton = e.target.closest('[data-supprimer]');
+        if (!bouton || !window.confirm(t('Supprimer cette pesée ?'))) return;
+        ecrire(lire().filter(p => p.date !== bouton.dataset.supprimer));
+        afficher();
+    });
+
+    let largeur = $('courbe-poids').clientWidth;
+    new ResizeObserver(() => {
+        const courbe = $('courbe-poids');
+        if (courbe.clientWidth && courbe.clientWidth !== largeur && lire().length) {
+            largeur = courbe.clientWidth;
+            afficher();
+        }
+    }).observe($('courbe-poids'));
+
     afficher();
 }
 
