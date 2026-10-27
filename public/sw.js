@@ -11,7 +11,7 @@
    existantes sont remplacées, pour éviter de tout retélécharger.
    ========================================================== */
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const VERSION_PHOTOS = 'v1';
 const CACHE_BASE = `iron-pulse-base-${VERSION}`;
 const CACHE_PHOTOS = `iron-pulse-photos-${VERSION_PHOTOS}`;
@@ -28,6 +28,7 @@ const FICHIERS_BASE = [
     '/i18n/he.js',
     '/aliments.js',
     '/programmes.js',
+    '/videos.js',
     '/manifest.webmanifest',
     '/icons/favicon.svg',
     '/icons/icon-192.png',

@@ -86,6 +86,8 @@ const EXERCICES = {
         conseil: "Poitrine sortie, tire vers le ventre et serre les omoplates." },
     'rowing-machine': { nom: "Rowing assis (machine)", muscles: "Milieu du dos", groupe: "dos-horizontal", img: "rowing-machine", emoji: "💪",
         conseil: "Poitrine contre l'appui, tire les poignées vers toi en serrant les omoplates." },
+    'rowing-t': { nom: "Rowing T-bar avec appui poitrine", muscles: "Milieu du dos", groupe: "dos-horizontal", emoji: "💪",
+        conseil: "Poitrine bien collée à l'appui pendant toute la série (ça protège le bas du dos), tire les poignées vers le ventre en serrant les omoplates, coudes près du corps, puis redescends lentement." },
 
     // ---------- Bras ----------
     'curl': { nom: "Curl haltères", muscles: "Biceps", groupe: "biceps", img: "curl", emoji: "💪",

@@ -4881,3 +4881,120 @@ body.outil-ouvert {
     font-weight: 800;
     letter-spacing: 0;
 }
+
+/* ==========================================================
+   VIDÉOS DES EXERCICES — vignette cliquable et lecteur
+   ========================================================== */
+/* La photo de l'exercice devient un bouton « ▶ Vidéo » */
+.exo__media--video,
+.guide__media--video {
+    display: block;
+    padding: 0;
+    border: none;
+    color: inherit;
+    font-family: var(--font-body);
+    cursor: pointer;
+}
+
+.exo__lecture {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 14px 4px 5px;
+    background: linear-gradient(180deg, transparent, rgba(10, 10, 11, 0.9));
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+}
+
+.guide__media--video {
+    position: relative;
+}
+
+.guide__lecture {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(10, 10, 11, 0.35);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.guide__lecture span {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    padding-left: 4px;
+    border-radius: 50%;
+    background: var(--gradient);
+    box-shadow: var(--glow);
+    font-size: 1.3rem;
+}
+
+.exo__media--video:focus-visible,
+.guide__media--video:focus-visible {
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 2px;
+}
+
+/* Fenêtre du lecteur */
+.video__panneau {
+    max-width: 760px;
+}
+
+.video__cadre {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+}
+
+.video__cadre iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.video__hors-ligne {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    padding: 20px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.video__source {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+@media (hover: hover) {
+    .exo__media--video:hover .exo__lecture {
+        color: var(--neon-orange);
+    }
+
+    .guide__media--video:hover .guide__lecture span {
+        transform: scale(1.08);
+    }
+}
+
+.video__hors-ligne a {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--neon-orange);
+    font-weight: 600;
+}

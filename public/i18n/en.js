@@ -415,3 +415,27 @@ Object.assign(TRADUCTIONS.en, {
     "1 tasse": "1 cup"
 });
 Object.assign(TRADUCTIONS.en, { "Eau": "Water" });
+
+// Vidéos des exercices
+Object.assign(TRADUCTIONS.en, {
+    "Voir la vidéo : {nom}": "Watch the video: {nom}",
+    "▶ Vidéo": "▶ Video",
+    "Voir la vidéo": "Watch the video",
+    "📶 Pas de connexion : la vidéo sera visible quand tu auras du réseau.": "📶 No connection: the video will play once you're back online.",
+    "Vidéo : {nom}": "Video: {nom}",
+    "Vidéo YouTube : {chaine}": "YouTube video: {chaine}",
+    "en {langue}": "in {langue}",
+    "français": "French",
+    "anglais": "English",
+    "hébreu": "Hebrew"
+});
+
+// Exercice ajouté : rowing T-bar avec appui poitrine
+Object.assign(TRADUCTIONS.en, {
+    "Rowing T-bar avec appui poitrine": "Chest-supported T-bar row",
+    "Poitrine bien collée à l'appui pendant toute la série (ça protège le bas du dos), tire les poignées vers le ventre en serrant les omoplates, coudes près du corps, puis redescends lentement.": "Keep your chest pressed against the pad for the whole set (it protects your lower back), pull the handles toward your belly while squeezing your shoulder blades, elbows close to your body, then lower slowly."
+});
+Object.assign(TRADUCTIONS.en, {
+    "La vidéo ne se lit pas quand le site est ouvert depuis un fichier de l'ordinateur. Sur le site en ligne (ou avec Live Server), elle se lit ici.": "The video can't play when the site is opened from a file on your computer. On the live site (or with Live Server), it plays here.",
+    "▶ Regarder sur YouTube": "▶ Watch on YouTube"
+});

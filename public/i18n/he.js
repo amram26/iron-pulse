@@ -415,3 +415,27 @@ Object.assign(TRADUCTIONS.he, {
     "1 tasse": "כוס אחת"
 });
 Object.assign(TRADUCTIONS.he, { "Eau": "מים" });
+
+// Vidéos des exercices
+Object.assign(TRADUCTIONS.he, {
+    "Voir la vidéo : {nom}": "צפייה בסרטון: {nom}",
+    "▶ Vidéo": "▶ סרטון",
+    "Voir la vidéo": "צפייה בסרטון",
+    "📶 Pas de connexion : la vidéo sera visible quand tu auras du réseau.": "📶 אין חיבור: הסרטון יוצג כשתחזרו לרשת.",
+    "Vidéo : {nom}": "סרטון: {nom}",
+    "Vidéo YouTube : {chaine}": "סרטון יוטיוב: {chaine}",
+    "en {langue}": "ב{langue}",
+    "français": "צרפתית",
+    "anglais": "אנגלית",
+    "hébreu": "עברית"
+});
+
+// Exercice ajouté : rowing T-bar avec appui poitrine
+Object.assign(TRADUCTIONS.he, {
+    "Rowing T-bar avec appui poitrine": "חתירת T-בר עם תמיכת חזה",
+    "Poitrine bien collée à l'appui pendant toute la série (ça protège le bas du dos), tire les poignées vers le ventre en serrant les omoplates, coudes près du corps, puis redescends lentement.": "השאירו את החזה צמוד לכרית לאורך כל הסט (זה מגן על הגב התחתון), משכו את הידיות לכיוון הבטן תוך כיווץ השכמות, מרפקים קרובים לגוף, ואז הורידו לאט."
+});
+Object.assign(TRADUCTIONS.he, {
+    "La vidéo ne se lit pas quand le site est ouvert depuis un fichier de l'ordinateur. Sur le site en ligne (ou avec Live Server), elle se lit ici.": "הסרטון לא מתנגן כשהאתר נפתח מקובץ במחשב. באתר עצמו (או עם Live Server) הוא מתנגן כאן.",
+    "▶ Regarder sur YouTube": "▶ צפייה ביוטיוב"
+});

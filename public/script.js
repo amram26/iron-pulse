@@ -1075,7 +1075,9 @@ function initProgramme() {
 
         return `
             <li class="exo" data-index="${i}">
-                <div class="exo__media">${media}<span class="exo__num">${i + 1}</span></div>
+                ${videoExercice(e.id)
+                    ? `<button type="button" class="exo__media exo__media--video" data-video="${e.id}" aria-label="${t('Voir la vidéo : {nom}', { nom })}">${media}<span class="exo__num">${i + 1}</span><span class="exo__lecture" aria-hidden="true">${t('▶ Vidéo')}</span></button>`
+                    : `<div class="exo__media">${media}<span class="exo__num">${i + 1}</span></div>`}
                 <div class="exo__info">
                     <h4 class="exo__nom">${nom}</h4>
                     <p class="exo__muscles">${t(exo.muscles)}</p>
@@ -1405,6 +1407,12 @@ function initProgramme() {
             return;
         }
 
+        const boutonVideo = e.target.closest('[data-video]');
+        if (boutonVideo) {
+            ouvrirVideo(boutonVideo.dataset.video);
+            return;
+        }
+
         const boutonRecup = e.target.closest('[data-recup]');
         if (boutonRecup) {
             const action = boutonRecup.dataset.recup;
@@ -1576,7 +1584,9 @@ function initProgramme() {
             <div class="guide__progression" aria-hidden="true"><span style="width: ${Math.round((faites / total) * 100)}%"></span></div>
             <div class="guide__corps">
                 <div class="guide__contenu">
-                    <div class="guide__media">${media}</div>
+                    ${videoExercice(g.id)
+                        ? `<button type="button" class="guide__media guide__media--video" data-video="${g.id}" aria-label="${t('Voir la vidéo : {nom}', { nom })}">${media}<span class="guide__lecture" aria-hidden="true"><span>▶</span>${t('Voir la vidéo')}</span></button>`
+                        : `<div class="guide__media">${media}</div>`}
                     <h2 class="guide__nom">${nom}</h2>
                     <p class="guide__cible">${t('{n} séries', { n: s.series })} × ${t(s.reps)}${exo.duree ? '' : ` ${t('rép.')}`} • ⏱ ${formatRepos(s.repos)}</p>
                     ${derniere ? `<p class="carnet__dernier">${t('📒 Dernière fois ({date}) :', { date: new Date(derniere.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }) })} <strong dir="ltr">${resumeEntree(derniere, unite)}</strong></p>` : ''}
@@ -1683,6 +1693,8 @@ function initProgramme() {
     });
 
     guideEl.addEventListener('click', e => {
+        const boutonVideo = e.target.closest('[data-video]');
+        if (boutonVideo) return ouvrirVideo(boutonVideo.dataset.video);
         const action = e.target.closest('[data-guide]')?.dataset.guide;
         if (!action || !guide) return;
 
@@ -2429,6 +2441,68 @@ function calculerDisques(total, barre) {
 
 const chargeMaxEstimee = (kg, reps) => (reps <= 1 ? kg : kg * (1 + reps / 30));
 const arrondir25 = kg => Math.round(kg / 2.5) * 2.5;
+
+/* ==========================================================
+   VIDÉOS DES EXERCICES — tutoriels YouTube (videos.js), dans la
+   langue du site si possible, sinon en anglais puis en français.
+   Le lecteur n'est chargé qu'au toucher (youtube-nocookie).
+   ========================================================== */
+
+const NOMS_LANGUES = { fr: 'français', en: 'anglais', he: 'hébreu' };
+
+// { id, chaine, langue } ou null si aucune vidéo n'a été retenue pour cet exercice
+function videoExercice(exoId) {
+    if (typeof VIDEOS === 'undefined') return null;
+    for (const langue of [LANGUE, 'en', 'fr']) {
+        const video = VIDEOS[langue]?.[exoId];
+        if (video) return { id: video[0], chaine: video[1], langue };
+    }
+    return null;
+}
+
+function ouvrirVideo(exoId) {
+    const video = videoExercice(exoId);
+    if (!video) return;
+    document.getElementById('video')?.remove();
+    const retour = document.activeElement;
+    const nom = t(EXERCICES[exoId].nom);
+    const fenetre = document.createElement('div');
+    fenetre.id = 'video';
+    fenetre.className = 'outil video';
+    fenetre.setAttribute('role', 'dialog');
+    fenetre.setAttribute('aria-modal', 'true');
+    fenetre.setAttribute('aria-labelledby', 'video-titre');
+    const adresse = `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&playsinline=1&hl=${LANGUE}`;
+    fenetre.innerHTML = `
+        <div class="outil__fond" data-fermer></div>
+        <div class="outil__panneau video__panneau">
+            <div class="outil__tete">
+                <h2 class="outil__titre" id="video-titre">${nom}</h2>
+                <button type="button" class="guide__fermer" data-fermer aria-label="${t('Fermer')}">✕</button>
+            </div>
+            <div class="video__cadre">
+                ${navigator.onLine === false
+                    ? `<p class="video__hors-ligne">${t('📶 Pas de connexion : la vidéo sera visible quand tu auras du réseau.')}</p>`
+                    // Page ouverte depuis un fichier de l'ordinateur : YouTube refuse la lecture intégrée
+                    : location.protocol === 'file:'
+                    ? `<p class="video__hors-ligne">${t("La vidéo ne se lit pas quand le site est ouvert depuis un fichier de l'ordinateur. Sur le site en ligne (ou avec Live Server), elle se lit ici.")}<a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener">${t('▶ Regarder sur YouTube')}</a></p>`
+                    : `<iframe src="${adresse}" title="${t('Vidéo : {nom}', { nom })}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`}
+            </div>
+            <p class="video__source">${t('Vidéo YouTube : {chaine}', { chaine: video.chaine })}${video.langue !== LANGUE ? ` · ${t('en {langue}', { langue: t(NOMS_LANGUES[video.langue]) })}` : ''}</p>
+        </div>`;
+    document.body.appendChild(fenetre);
+    document.body.classList.add('outil-ouvert');
+
+    // Fermer retire le lecteur : la vidéo s'arrête
+    const fermer = () => {
+        fenetre.remove();
+        document.body.classList.remove('outil-ouvert');
+        retour?.focus?.({ preventScroll: true });
+    };
+    fenetre.addEventListener('click', e => { if (e.target.closest('[data-fermer]')) fermer(); });
+    fenetre.addEventListener('keydown', e => { if (e.key === 'Escape') fermer(); });
+    fenetre.querySelector('.guide__fermer').focus({ preventScroll: true });
+}
 
 function ouvrirOutils({ kg = '', reps = '', onglet = 'disques' } = {}) {
     let outil = document.getElementById('outil');
