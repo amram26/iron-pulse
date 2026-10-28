@@ -5043,3 +5043,32 @@ body.outil-ouvert {
     font-weight: 800;
     letter-spacing: 0;
 }
+
+/* ---------- Zones tactiles agrandies (au moins 44 px de haut) sans changer l'apparence ---------- */
+.lang-switch button,
+.carousel-dots button,
+.chip-btn,
+.meal__swap {
+    position: relative;
+}
+
+.lang-switch button::after,
+.carousel-dots button::after,
+.chip-btn::after,
+.meal__swap::after {
+    content: '';
+    position: absolute;
+    inset: -6px 0;
+}
+
+.carousel-dots button::after {
+    inset: -18px -4px;
+}
+
+.chip-btn::after {
+    inset: -4px 0;
+}
+
+.meal__swap::after {
+    inset: -5px 0;
+}

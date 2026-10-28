@@ -83,6 +83,8 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 - Ne jamais mettre de `backdrop-filter` directement sur `.header` : il confinerait le menu mobile plein écran (le flou est sur `.header::before`).
 - **Page courte et rangée sur téléphone** : les séries de grandes cartes (programmes, macros) sont des carrousels à faire glisser (`.carousel` + `data-carousel`, points générés par `initCarrousel`), redevenant des grilles à partir de `961px`. Conseils en 2 × 2, 3 aliments populaires seulement tant qu'on n'a rien tapé, footer sur 2 colonnes.
 - **Barre d'accès rapide** `.tabbar` en bas de l'écran sous `769px` (Accueil, Programmes, Nutrition, Aliments, Calcul) ; l'onglet actif suit le défilement. Le `body` a un `padding-bottom` pour qu'elle ne cache rien. Toute nouvelle section importante peut y être ajoutée (5 onglets maximum).
+- Petits boutons (langues, points des carrousels, puces, « ↻ Autre idée ») : zone tactile agrandie à ~44 px par un `::after` invisible (bloc « Zones tactiles agrandies » à la fin de `style.css`), sans changer leur apparence.
+- **Vérification complète du site en ligne le 28/10/2026** (téléphone simulé de 360 px, FR / EN / HE) : aucun débordement horizontal, aucune phrase non traduite, séance guidée entière (22 séries, minuteur, bilan, carnet, page Progrès), hors ligne (programmes, progrès, recherche d'aliments, 45 photos d'exercices en réserve), records, échauffement, vidéos, Mon programme, journal du jour.
 - Le seuil `768` dans `script.js` (fermeture du menu au redimensionnement) doit rester aligné avec la media query `769px`.
 
 ## Déploiement
