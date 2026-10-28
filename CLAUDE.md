@@ -35,7 +35,8 @@ Iron_Pulse/
 │   ├── style.css    # Tous les styles, organisés par sections commentées
 │   └── script.js    # Interactions, tout dans un seul DOMContentLoaded
 ├── .gitignore
-└── CLAUDE.md        # Documentation interne, jamais publiée
+├── CLAUDE.md        # Documentation interne, jamais publiée
+└── GUIDE.md         # Guide du propriétaire (fonctions, utilisation, historique) — à tenir à jour avec les nouveautés
 ```
 
 Tout nouveau fichier du site (pages, images, favicon…) va dans `public/`. Rien d'autre ne doit y aller.
