@@ -439,3 +439,30 @@ Object.assign(TRADUCTIONS.en, {
     "La vidéo ne se lit pas quand le site est ouvert depuis un fichier de l'ordinateur. Sur le site en ligne (ou avec Live Server), elle se lit ici.": "The video can't play when the site is opened from a file on your computer. On the live site (or with Live Server), it plays here.",
     "▶ Regarder sur YouTube": "▶ Watch on YouTube"
 });
+
+// Page Confidentialité et bas de page
+Object.assign(TRADUCTIONS.en, {
+    "Confidentialité — Iron Pulse": "Privacy — Iron Pulse",
+    "Tes données": "Your data",
+    "Confidentialité": "Privacy",
+    "Iron Pulse est gratuit et sans compte. Voici exactement ce qui est gardé, et où.": "Iron Pulse is free and needs no account. Here is exactly what is kept, and where.",
+    "Mise à jour : 28 octobre 2026": "Updated: October 28, 2026",
+    "En bref": "In short",
+    "Pas de compte, pas d'inscription, pas d'e-mail demandé.": "No account, no sign-up, no email required.",
+    "Pas de publicité, pas de cookies, pas d'outil de statistiques ni de traceur.": "No ads, no cookies, no analytics or tracking tools.",
+    "Ce que tu notes reste sur ton téléphone, sauf si tu actives toi-même la sauvegarde en ligne, qui est chiffrée.": "What you log stays on your phone, unless you turn on the online backup yourself, which is encrypted.",
+    "Ce qui reste sur ton téléphone": "What stays on your phone",
+    "Le site enregistre dans la mémoire de ton navigateur (stockage local) : ton carnet d'entraînement, tes pesées, ton journal des repas, ton programme personnel, les réponses du calculateur et tes réglages (langue, exercices choisis, barre utilisée). Ces données ne quittent pas ton appareil.": "The site saves in your browser's memory (local storage): your training log, your weigh-ins, your food log, your custom program, your calculator answers and your settings (language, chosen exercises, bar used). This data does not leave your device.",
+    "Pour tout effacer : supprime les données du site dans les réglages de ton navigateur, ou désinstalle l'application. Pense à faire une sauvegarde avant si tu veux les garder.": "To erase everything: delete the site's data in your browser settings, or uninstall the app. Make a backup first if you want to keep it.",
+    "La sauvegarde en ligne (facultative)": "The online backup (optional)",
+    "Elle n'est active que si tu la mets en marche dans la page « Mes progrès ». Tes données sont alors chiffrées sur ton téléphone avec ton code personnel avant d'être envoyées. Le serveur ne reçoit qu'un bloc illisible : ni ton code, ni ton carnet, ni ton nom.": "It is only active if you turn it on in the “My progress” page. Your data is then encrypted on your phone with your personal code before being sent. The server only receives an unreadable block: not your code, not your log, not your name.",
+    "Personne, même pas nous, ne peut lire ou récupérer tes données sans ton code. Si tu perds ton code, la sauvegarde ne peut pas être récupérée. En désactivant la sauvegarde, la copie en ligne est supprimée.": "Nobody, not even us, can read or recover your data without your code. If you lose your code, the backup cannot be recovered. Turning the backup off deletes the online copy.",
+    "Les services utilisés par le site": "Services used by the site",
+    "Cloudflare héberge le site et la sauvegarde chiffrée. Comme tout hébergeur, il voit les informations techniques de connexion (adresse IP, type de navigateur) pour faire fonctionner et protéger le site.": "Cloudflare hosts the site and the encrypted backup. Like any host, it sees technical connection information (IP address, browser type) to run and protect the site.",
+    "Google Fonts fournit les polices d'écriture : ton navigateur les télécharge chez Google, qui voit alors ton adresse IP.": "Google Fonts provides the fonts: your browser downloads them from Google, which then sees your IP address.",
+    "YouTube affiche les vidéos des exercices. Le lecteur n'est chargé que lorsque tu touches « Vidéo », en mode sans cookie publicitaire ; à partir de là, les règles de confidentialité de YouTube (Google) s'appliquent.": "YouTube shows the exercise videos. The player only loads when you tap “Video”, in no-advertising-cookie mode; from then on, YouTube's (Google's) privacy rules apply.",
+    "Santé": "Health",
+    "Les programmes, calculs et conseils sont donnés à titre d'information générale. Ils ne remplacent pas l'avis d'un médecin ou d'un professionnel du sport, surtout en cas de douleur, de blessure ou de problème de santé.": "Programs, calculations and tips are general information. They do not replace the advice of a doctor or sports professional, especially in case of pain, injury or a health problem.",
+    "Infos": "Info",
+    "Sauvegarder mes données": "Back up my data"
+});

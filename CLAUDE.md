@@ -50,7 +50,9 @@ Tout nouveau fichier du site (pages, images, favicon…) va dans `public/`. Rien
 | `#calculateur` | Calculateur calories + macros (formulaire / résultats) | Fait     |
 | `#contact`     | Le `<footer>` (plus de lien « Contact » dans le menu, remplacé par « Progrès ») | Provisoire |
 
-Autres pages : `programme.html` (programmes) et `progres.html` (« Mes progrès »). Menu principal : Accueil, Programmes, Nutrition, Calculateur, Progrès.
+Bas de page des 4 pages : colonne « Infos » (Confidentialité, Sauvegarder mes données). Les faux liens (contact@ironpulse.fr, Instagram, YouTube en `#`) ont été retirés le 28/10/2026 : à remettre seulement avec de vrais comptes.
+
+Autres pages : `programme.html` (programmes), `progres.html` (« Mes progrès ») et `confidentialite.html` (données gardées sur le téléphone, sauvegarde chiffrée, services tiers : Cloudflare, Google Fonts, YouTube ; avertissement santé). **Mettre cette page à jour si le site commence à envoyer ou stocker autre chose** (statistiques, nouveau service, formulaire de contact…) ; vérifié le 28/10/2026 : aucun cookie ni traceur. Menu principal : Accueil, Programmes, Nutrition, Calculateur, Progrès.
 
 ## Page « Mes progrès » (`progres.html`)
 
@@ -87,7 +89,7 @@ Le site est pensé **d'abord pour le téléphone** (« mobile first ») :
 
 - Code sur GitHub : https://github.com/amram26/iron-pulse (branche `main`).
 - Hébergé sur **Cloudflare Pages**, projet `iron-pulse-site` relié à GitHub : **https://iron-pulse-site.pages.dev**. Aucune commande de build, **répertoire de sortie `public`** — chaque push sur `main` redéploie le site (~1 min).
-- Ancien projet en envoi direct `iron-pulse` (https://iron-pulse-b9o.pages.dev) : obsolète, à supprimer.
+- L'ancien projet en envoi direct `iron-pulse` (iron-pulse-b9o.pages.dev) n'existe plus (vérifié le 28/10/2026 : seuls `iron-pulse-site` et `zombie-gamer` restent).
 - Le projet Cloudflare `zombie-gamer` n'a rien à voir avec Iron Pulse : ne jamais y toucher.
 
 ## Conventions de code
@@ -160,5 +162,5 @@ Code dans `script.js` (`initCalculator`, `calculerBesoins`, constantes `OBJECTIF
 ## Prochaines étapes
 
 1. **Section Contact** (`#contact`) dédiée avec formulaire (nom, e-mail, message) et validation JS, au lieu de pointer vers le footer.
-2. **Liens réseaux sociaux** du footer (Instagram, YouTube) à renseigner.
+2. **Liens réseaux sociaux** et adresse de contact du footer, si le propriétaire crée de vrais comptes (pas de nom de domaine payant : choix du propriétaire, on garde `iron-pulse-site.pages.dev`).
 3. Idée possible : synchronisation en continu entre plusieurs appareils utilisés en même temps (aujourd'hui : sauvegarde en ligne automatique + récupération par code sur un nouveau téléphone).

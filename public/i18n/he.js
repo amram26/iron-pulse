@@ -439,3 +439,30 @@ Object.assign(TRADUCTIONS.he, {
     "La vidéo ne se lit pas quand le site est ouvert depuis un fichier de l'ordinateur. Sur le site en ligne (ou avec Live Server), elle se lit ici.": "הסרטון לא מתנגן כשהאתר נפתח מקובץ במחשב. באתר עצמו (או עם Live Server) הוא מתנגן כאן.",
     "▶ Regarder sur YouTube": "▶ צפייה ביוטיוב"
 });
+
+// Page Confidentialité et bas de page
+Object.assign(TRADUCTIONS.he, {
+    "Confidentialité — Iron Pulse": "פרטיות — Iron Pulse",
+    "Tes données": "המידע שלכם",
+    "Confidentialité": "פרטיות",
+    "Iron Pulse est gratuit et sans compte. Voici exactement ce qui est gardé, et où.": "Iron Pulse חינמי ובלי חשבון. הנה בדיוק מה נשמר, ואיפה.",
+    "Mise à jour : 28 octobre 2026": "עודכן: 28 באוקטובר 2026",
+    "En bref": "בקצרה",
+    "Pas de compte, pas d'inscription, pas d'e-mail demandé.": "בלי חשבון, בלי הרשמה, בלי לבקש אימייל.",
+    "Pas de publicité, pas de cookies, pas d'outil de statistiques ni de traceur.": "בלי פרסומות, בלי עוגיות (cookies), בלי כלי סטטיסטיקה או מעקב.",
+    "Ce que tu notes reste sur ton téléphone, sauf si tu actives toi-même la sauvegarde en ligne, qui est chiffrée.": "מה שאתם רושמים נשאר בטלפון, אלא אם תפעילו בעצמכם את הגיבוי המקוון, שהוא מוצפן.",
+    "Ce qui reste sur ton téléphone": "מה שנשאר בטלפון",
+    "Le site enregistre dans la mémoire de ton navigateur (stockage local) : ton carnet d'entraînement, tes pesées, ton journal des repas, ton programme personnel, les réponses du calculateur et tes réglages (langue, exercices choisis, barre utilisée). Ces données ne quittent pas ton appareil.": "האתר שומר בזיכרון הדפדפן (אחסון מקומי): את יומן האימונים, השקילות, יומן הארוחות, התוכנית האישית, התשובות במחשבון וההגדרות (שפה, תרגילים שנבחרו, מוט). המידע הזה לא יוצא מהמכשיר.",
+    "Pour tout effacer : supprime les données du site dans les réglages de ton navigateur, ou désinstalle l'application. Pense à faire une sauvegarde avant si tu veux les garder.": "כדי למחוק הכול: מחקו את נתוני האתר בהגדרות הדפדפן, או הסירו את האפליקציה. אם תרצו לשמור אותם, עשו גיבוי לפני כן.",
+    "La sauvegarde en ligne (facultative)": "הגיבוי המקוון (לא חובה)",
+    "Elle n'est active que si tu la mets en marche dans la page « Mes progrès ». Tes données sont alors chiffrées sur ton téléphone avec ton code personnel avant d'être envoyées. Le serveur ne reçoit qu'un bloc illisible : ni ton code, ni ton carnet, ni ton nom.": "הוא פעיל רק אם הפעלתם אותו בעמוד „ההתקדמות שלי”. המידע מוצפן בטלפון עם הקוד האישי שלכם לפני שהוא נשלח. השרת מקבל רק גוש בלתי קריא: לא את הקוד, לא את היומן ולא את השם שלכם.",
+    "Personne, même pas nous, ne peut lire ou récupérer tes données sans ton code. Si tu perds ton code, la sauvegarde ne peut pas être récupérée. En désactivant la sauvegarde, la copie en ligne est supprimée.": "אף אחד, גם לא אנחנו, לא יכול לקרוא או לשחזר את המידע בלי הקוד שלכם. אם הקוד אובד, אי אפשר לשחזר את הגיבוי. כיבוי הגיבוי מוחק את העותק המקוון.",
+    "Les services utilisés par le site": "השירותים שהאתר משתמש בהם",
+    "Cloudflare héberge le site et la sauvegarde chiffrée. Comme tout hébergeur, il voit les informations techniques de connexion (adresse IP, type de navigateur) pour faire fonctionner et protéger le site.": "Cloudflare מארחת את האתר ואת הגיבוי המוצפן. כמו כל שירות אחסון, היא רואה מידע טכני על החיבור (כתובת IP, סוג דפדפן) כדי להפעיל ולהגן על האתר.",
+    "Google Fonts fournit les polices d'écriture : ton navigateur les télécharge chez Google, qui voit alors ton adresse IP.": "Google Fonts מספקת את הגופנים: הדפדפן מוריד אותם מגוגל, שרואה אז את כתובת ה-IP שלכם.",
+    "YouTube affiche les vidéos des exercices. Le lecteur n'est chargé que lorsque tu touches « Vidéo », en mode sans cookie publicitaire ; à partir de là, les règles de confidentialité de YouTube (Google) s'appliquent.": "YouTube מציג את סרטוני התרגילים. הנגן נטען רק כשלוחצים על „סרטון”, במצב בלי עוגיות פרסום; מאותו רגע חלים כללי הפרטיות של YouTube (גוגל).",
+    "Santé": "בריאות",
+    "Les programmes, calculs et conseils sont donnés à titre d'information générale. Ils ne remplacent pas l'avis d'un médecin ou d'un professionnel du sport, surtout en cas de douleur, de blessure ou de problème de santé.": "התוכניות, החישובים והטיפים הם מידע כללי. הם לא מחליפים ייעוץ של רופא או של איש מקצוע בספורט, במיוחד במקרה של כאב, פציעה או בעיה רפואית.",
+    "Infos": "מידע",
+    "Sauvegarder mes données": "גיבוי המידע שלי"
+});
